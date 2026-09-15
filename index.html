@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca Rafael Parga Cortés</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Biblioteca Rafael Parga Cortés</h1>
+        <p>Sistema de Gestión de Préstamos - Universidad del Tolima</p>
+    </header>
+
+    <main class="container">
+        
+        <!-- SECCIÓN DE LOGIN -->
+        <section id="login-section" class="ui-section">
+            <div class="login-container">
+                <h2 style="margin-bottom: 1.5rem; text-align: center;">Acceso de Estudiantes</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="codigo">Código Estudiantil</label>
+                        <input type="text" id="codigo" placeholder="Ingrese su código" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" placeholder="Ingrese su contraseña" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Ingresar al Sistema</button>
+                </form>
+                <p id="login-message"></p>
+            </div>
+        </section>
+
+        <!-- SECCIÓN DEL CATÁLOGO (Oculta al inicio) -->
+        <section id="catalog-section" class="hidden">
+            <div class="catalog-header">
+                <h2 class="section-title">Catálogo de Libros</h2>
+                <button id="btn-logout" class="btn btn-secondary">Cerrar Sesión</button>
+            </div>
+            
+            <div class="book-grid">
+                <!-- Libro 1 -->
+                <div class="book-card">
+                    <div class="book-cover">Java</div>
+                    <h3>Fundamentos de Programación en Java</h3>
+                    <p class="author">Luis Joyanes Aguilar</p>
+                    <span class="status available">Disponible</span>
+                    <button class="btn btn-primary btn-prestamo">Solicitar Préstamo</button>
+                </div>
+
+                <!-- Libro 2 -->
+                <div class="book-card">
+                    <div class="book-cover">C# y Patrones</div>
+                    <h3>Patrones de Diseño: Implementando el Patrón Observer</h3>
+                    <p class="author">Erich Gamma</p>
+                    <span class="status available">Disponible</span>
+                    <button class="btn btn-primary btn-prestamo">Solicitar Préstamo</button>
+                </div>
+
+                <!-- Libro 3 -->
+                <div class="book-card">
+                    <div class="book-cover">Multimedia</div>
+                    <h3>Producción Audiovisual y Diseño</h3>
+                    <p class="author">John Owens</p>
+                    <span class="status unavailable">Prestado</span>
+                    <button class="btn btn-secondary" disabled>No Disponible</button>
+                </div>
+                
+                <!-- Libro 4 -->
+                <div class="book-card">
+                    <div class="book-cover">Ing. Software</div>
+                    <h3>Ingeniería de Software: Un Enfoque Práctico</h3>
+                    <p class="author">Roger S. Pressman</p>
+                    <span class="status available">Disponible</span>
+                    <button class="btn btn-primary btn-prestamo">Solicitar Préstamo</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

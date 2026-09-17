@@ -8,6 +8,16 @@
 
     <!-- Librería de Íconos: FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca Rafael Parga Cortés</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Librería de Íconos: FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- LIBRERÍA DE ALERTAS: SweetAlert2 (¡Esta es la que faltaba!) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -21,7 +31,7 @@
         <!-- SECCIÓN DE LOGIN (Restaurada) -->
         <section id="login-section" class="ui-section">
             <div class="login-container">
-                <h2 style="margin-bottom: 1.5rem; text-align: center;">Acceso de Estudiantes</h2>
+                <h2 style="margin-bottom: 1.5rem; text-align: center;"><i class="fa-solid fa-user-graduate"></i> Acceso de Estudiantes</h2>
                 <form id="login-form">
                     <div class="form-group">
                         <label for="codigo">Código Estudiantil</label>
@@ -37,69 +47,82 @@
             </div>
         </section>
 
-        <!-- SECCIÓN DEL CATÁLOGO (Restaurada y oculta al inicio) -->
+<!-- SECCIÓN DEL CATÁLOGO -->
         <section id="catalog-section" class="hidden">
-            
-            <!-- CABECERA CON EL BOTÓN DE CERRAR SESIÓN -->
             <div class="catalog-header">
                 <h2 class="section-title">Catálogo de Libros</h2>
-                <button id="btn-logout" class="btn btn-secondary"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión</button>
+                <div class="header-buttons">
+                    <button id="btn-mis-prestamos" class="btn btn-primary"><i class="fa-solid fa-book-open-reader"></i> Mis Préstamos</button>
+                    <button id="btn-logout" class="btn btn-secondary"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</button>
+                </div>
             </div>
             
             <div class="book-grid">
                 <!-- Libro 1 -->
-                <div class="book-card">
+                <div class="book-card" data-id="1">
                     <div class="book-image-container">
                         <img src="fundamentos.jpg" alt="Portada Fundamentos de Programación" class="book-cover-img">
                     </div>
                     <h3>Fundamentos de Programación: Algoritmos y Estructura de Datos</h3>
                     <p class="author">Luis Joyanes Aguilar</p>
-                    
                     <div class="book-details">
                         <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-8448136649</p>
                         <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> Segunda Edición</p>
                         <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante A3, Ingeniería</p>
                     </div>
-
                     <span class="status available">Disponible</span>
                     <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
                 </div>
 
                 <!-- Libro 2 -->
-                <div class="book-card">
+                <div class="book-card" data-id="2">
                     <div class="book-image-container">
                         <img src="patrones.jpg" alt="Portada Design Patterns" class="book-cover-img">
                     </div>
                     <h3>Design Patterns: Elements of Reusable Object-Oriented Software</h3>
                     <p class="author">Gamma, Helm, Johnson, Vlissides</p>
-                    
                     <div class="book-details">
                         <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-0201633610</p>
                         <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> 1ra Edición</p>
                         <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante B1, Software</p>
                     </div>
-
                     <span class="status available">Disponible</span>
                     <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
                 </div>
 
                 <!-- Libro 3 -->
-                <div class="book-card">
+                <div class="book-card" data-id="3">
                     <div class="book-image-container">
                         <img src="ingenieria.jpg" alt="Ingeniería de Software" class="book-cover-img">
                     </div>
                     <h3>Ingeniería de Software: Un Enfoque Práctico</h3>
                     <p class="author">Roger S. Pressman, Bruce R. Maxim</p>
-                    
                     <div class="book-details">
                         <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-1456287714</p>
                         <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> Novena Edición</p>
                         <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante B2, Software</p>
                     </div>
-
                     <span class="status unavailable">Prestado</span>
                     <button class="btn btn-secondary" disabled><i class="fa-solid fa-ban"></i> No Disponible</button>
                 </div>
+            </div>
+        </section>
+
+        <!-- NUEVA SECCIÓN: MIS PRÉSTAMOS -->
+        <section id="mis-prestamos-section" class="hidden">
+            <div class="catalog-header">
+                <h2 class="section-title">Mis Libros Prestados</h2>
+                <button id="btn-volver-catalogo" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Volver al Catálogo</button>
+            </div>
+            
+            <div class="book-grid" id="grid-prestamos-guardados">
+                <!-- Aquí se inyectarán los libros guardados mediante JavaScript -->
+            </div>
+            
+            <div id="mensaje-vacio" class="hidden" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                <i class="fa-solid fa-book-open fa-3x" style="margin-bottom: 1rem;"></i>
+                <h3>No tienes libros prestados actualmente.</h3>
+                <p>Ve al catálogo para solicitar material de estudio.</p>
             </div>
         </section>
 

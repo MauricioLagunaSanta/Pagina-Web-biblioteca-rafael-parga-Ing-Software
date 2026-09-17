@@ -12,8 +12,8 @@ loginForm.addEventListener('submit', function(event) {
 
     const codigo = document.getElementById('codigo').value;
     
-    // Simular carga de validación de usuario y multas
-    btnSubmit.textContent = 'Validando usuario...';
+    // Usamos innerHTML para poner un ícono de carga animado sin dañar el diseño
+    btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Validando usuario...';
     btnSubmit.style.opacity = '0.7';
     btnSubmit.disabled = true;
     
@@ -22,18 +22,20 @@ loginForm.addEventListener('submit', function(event) {
             // Error si el código es muy corto
             msgElement.style.display = 'block';
             msgElement.className = 'error-msg';
-            msgElement.textContent = 'Código no válido.';
-            btnSubmit.textContent = 'Ingresar al Sistema';
+            msgElement.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Código no válido.';
+            
+            // Restauramos el botón con su ícono original
+            btnSubmit.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Ingresar al Sistema';
             btnSubmit.style.opacity = '1';
             btnSubmit.disabled = false;
         } else {
-            // Éxito: Ocultar login y mostrar catálogo
+            // Éxito: Validamos que no tenga multas pendientes y abrimos catálogo
             loginSection.classList.add('hidden');
             catalogSection.classList.remove('hidden');
             
-            // Limpiar formulario para cuando vuelva a salir
+            // Limpiar formulario para cuando cierre sesión
             loginForm.reset();
-            btnSubmit.textContent = 'Ingresar al Sistema';
+            btnSubmit.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Ingresar al Sistema';
             btnSubmit.style.opacity = '1';
             btnSubmit.disabled = false;
             msgElement.style.display = 'none';
@@ -50,38 +52,42 @@ btnLogout.addEventListener('click', function() {
 // 3. Lógica para los botones de "Solicitar Préstamo" usando SweetAlert2
 const botonesPrestamo = document.querySelectorAll('.btn-prestamo');
 
+// Cambiamos a función de flecha para no perder la referencia del botón
 botonesPrestamo.forEach(boton => {
-    boton.addEventListener('click', function() {
+    boton.addEventListener('click', () => {
+        
         // Disparamos la alerta moderna de SweetAlert2
         Swal.fire({
             title: '¿Solicitar préstamo?',
-            text: "Recuerda que tienes un plazo estándar para devolverlo físico según el reglamento.",
+            text: "Recuerda que tienes un plazo estándar de X días para devolverlo físico según las reglas de negocio.",
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#610094', // Tu color morado
-            cancelButtonColor: '#08122c',  // Tu color azul
-            confirmButtonText: 'Sí, solicitar',
+            cancelButtonColor: '#08122c',  // Tu color azul oscuro
+            confirmButtonText: '<i class="fa-solid fa-check"></i> Sí, solicitar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Si el usuario acepta, cambiamos el estado visual
-                this.innerHTML = '<i class="fa-solid fa-check"></i> Préstamo Registrado';
-                this.classList.remove('btn-primary');
-                this.classList.add('btn-secondary');
-                this.disabled = true;
+                // Usamos 'boton.innerHTML' en lugar de 'this' para evitar errores
+                boton.innerHTML = '<i class="fa-solid fa-check-double"></i> Préstamo Registrado';
+                boton.classList.remove('btn-primary');
+                boton.classList.add('btn-secondary');
+                boton.disabled = true;
                 
-                const statusBadge = this.previousElementSibling;
-                statusBadge.textContent = "Prestado (En tu cuenta)";
-                statusBadge.classList.remove('available');
-                statusBadge.classList.add('unavailable');
+                const statusBadge = boton.previousElementSibling;
+                if(statusBadge) {
+                    statusBadge.innerHTML = '<i class="fa-solid fa-user-clock"></i> Prestado (En tu cuenta)';
+                    statusBadge.classList.remove('available');
+                    statusBadge.classList.add('unavailable');
+                }
                 
                 // Mensaje de éxito
                 Swal.fire(
-                    '¡Aprobado!',
-                    'El préstamo fue registrado. Pasa por la biblioteca a recoger el ejemplar físico.',
+                    '¡Préstamo Registrado!',
+                    'El sistema actualizó el inventario. Pasa por la biblioteca a recoger el ejemplar físico.',
                     'success'
-                )
+                );
             }
-        })
+        });
     });
 });

@@ -1,4 +1,116 @@
-<!-- Librería de Íconos: FontAwesome -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca Rafael Parga Cortés</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Librería de Íconos: FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Librería de Alertas: SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body>
+
+    <header>
+        <h1>Biblioteca Rafael Parga Cortés</h1>
+        <p>Sistema de Gestión de Préstamos - Universidad del Tolima</p>
+    </header>
+
+    <main class="container">
+        
+        <!-- SECCIÓN DE LOGIN -->
+        <section id="login-section" class="ui-section">
+            <div class="login-container">
+                <h2 style="margin-bottom: 1.5rem; text-align: center;"><i class="fa-solid fa-user-graduate"></i> Acceso de Estudiantes</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="codigo">Código Estudiantil</label>
+                        <input type="text" id="codigo" placeholder="Ingrese su código" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" placeholder="Ingrese su contraseña" required>
+                    </div>
+                    <!-- Aquí agregamos el ícono al botón de ingresar -->
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Ingresar al Sistema</button>
+                </form>
+                <p id="login-message"></p>
+            </div>
+        </section>
+
+        <!-- SECCIÓN DEL CATÁLOGO (Oculta al inicio) -->
+        <section id="catalog-section" class="hidden">
+            <div class="catalog-header">
+                <h2 class="section-title"><i class="fa-solid fa-book-open"></i> Catálogo de Libros</h2>
+                <!-- Aquí agregamos el ícono al botón de cerrar sesión -->
+                <button id="btn-logout" class="btn btn-secondary"><i class="fa-solid fa-power-off"></i> Cerrar Sesión</button>
+            </div>
+            
+            <div class="book-grid">
+                <!-- Libro 1 -->
+                <div class="book-card">
+                    <div class="book-image-container">
+                        <img src="https://m.media-amazon.com/images/I/61sJ3FpP2xL._AC_UF1000,1000_QL80_.jpg" alt="Portada Libro Java" class="book-cover-img">
+                    </div>
+                    <h3>Fundamentos de Programación en Java</h3>
+                    <p class="author">Luis Joyanes Aguilar</p>
+                    
+                    <div class="book-details">
+                        <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-8448174484</p>
+                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> 4ta Edición</p>
+                        <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante A3, Ingeniería</p>
+                    </div>
+
+                    <span class="status available">Disponible</span>
+                    <!-- Ícono en el botón de préstamo -->
+                    <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
+                </div>
+
+                <!-- Libro 2 -->
+                <div class="book-card">
+                    <div class="book-image-container">
+                        <img src="https://m.media-amazon.com/images/I/81gtKoapHFL.jpg" alt="Portada Patrones de Diseño" class="book-cover-img">
+                    </div>
+                    <h3>Patrones de Diseño (GoF)</h3>
+                    <p class="author">Erich Gamma, Richard Helm</p>
+                    
+                    <div class="book-details">
+                        <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-0201633610</p>
+                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> 1ra Edición</p>
+                        <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante B1, Software</p>
+                    </div>
+
+                    <span class="status available">Disponible</span>
+                    <!-- Ícono en el botón de préstamo -->
+                    <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
+                </div>
+
+                <!-- Libro 3 -->
+                <div class="book-card">
+                    <div class="book-image-container">
+                        <img src="https://m.media-amazon.com/images/I/71X0BwAD+6L._AC_UF1000,1000_QL80_.jpg" alt="Ingeniería de Software" class="book-cover-img">
+                    </div>
+                    <h3>Ingeniería de Software: Un Enfoque Práctico</h3>
+                    <p class="author">Roger S. Pressman</p>
+                    
+                    <div class="book-details">
+                        <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-6071503145</p>
+                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> 7ma Edición</p>
+                        <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante B2, Software</p>
+                    </div>
+
+                    <span class="status unavailable">Prestado</span>
+                    <!-- Ícono en el botón deshabilitado -->
+                    <button class="btn btn-secondary" disabled><i class="fa-solid fa-ban"></i> No Disponible</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

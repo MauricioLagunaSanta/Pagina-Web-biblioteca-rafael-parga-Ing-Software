@@ -8,9 +8,6 @@
 
     <!-- Librería de Íconos: FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Librería de Alertas: SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 </head>
 <body>
 
@@ -21,10 +18,10 @@
 
     <main class="container">
         
-        <!-- SECCIÓN DE LOGIN -->
+        <!-- SECCIÓN DE LOGIN (Restaurada) -->
         <section id="login-section" class="ui-section">
             <div class="login-container">
-                <h2 style="margin-bottom: 1.5rem; text-align: center;"><i class="fa-solid fa-user-graduate"></i> Acceso de Estudiantes</h2>
+                <h2 style="margin-bottom: 1.5rem; text-align: center;">Acceso de Estudiantes</h2>
                 <form id="login-form">
                     <div class="form-group">
                         <label for="codigo">Código Estudiantil</label>
@@ -34,48 +31,47 @@
                         <label for="password">Contraseña</label>
                         <input type="password" id="password" placeholder="Ingrese su contraseña" required>
                     </div>
-                    <!-- Aquí agregamos el ícono al botón de ingresar -->
-                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Ingresar al Sistema</button>
+                    <button type="submit" class="btn btn-primary">Ingresar al Sistema</button>
                 </form>
                 <p id="login-message"></p>
             </div>
         </section>
 
-        <!-- SECCIÓN DEL CATÁLOGO (Oculta al inicio) -->
+        <!-- SECCIÓN DEL CATÁLOGO (Restaurada y oculta al inicio) -->
         <section id="catalog-section" class="hidden">
+            
+            <!-- CABECERA CON EL BOTÓN DE CERRAR SESIÓN -->
             <div class="catalog-header">
-                <h2 class="section-title"><i class="fa-solid fa-book-open"></i> Catálogo de Libros</h2>
-                <!-- Aquí agregamos el ícono al botón de cerrar sesión -->
-                <button id="btn-logout" class="btn btn-secondary"><i class="fa-solid fa-power-off"></i> Cerrar Sesión</button>
+                <h2 class="section-title">Catálogo de Libros</h2>
+                <button id="btn-logout" class="btn btn-secondary"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar Sesión</button>
             </div>
             
             <div class="book-grid">
                 <!-- Libro 1 -->
                 <div class="book-card">
                     <div class="book-image-container">
-                        <img src="https://m.media-amazon.com/images/I/61sJ3FpP2xL._AC_UF1000,1000_QL80_.jpg" alt="Portada Libro Java" class="book-cover-img">
+                        <img src="fundamentos.jpg" alt="Portada Fundamentos de Programación" class="book-cover-img">
                     </div>
-                    <h3>Fundamentos de Programación en Java</h3>
+                    <h3>Fundamentos de Programación: Algoritmos y Estructura de Datos</h3>
                     <p class="author">Luis Joyanes Aguilar</p>
                     
                     <div class="book-details">
-                        <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-8448174484</p>
-                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> 4ta Edición</p>
+                        <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-8448136649</p>
+                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> Segunda Edición</p>
                         <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante A3, Ingeniería</p>
                     </div>
 
                     <span class="status available">Disponible</span>
-                    <!-- Ícono en el botón de préstamo -->
                     <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
                 </div>
 
                 <!-- Libro 2 -->
                 <div class="book-card">
                     <div class="book-image-container">
-                        <img src="https://m.media-amazon.com/images/I/81gtKoapHFL.jpg" alt="Portada Patrones de Diseño" class="book-cover-img">
+                        <img src="patrones.jpg" alt="Portada Design Patterns" class="book-cover-img">
                     </div>
-                    <h3>Patrones de Diseño (GoF)</h3>
-                    <p class="author">Erich Gamma, Richard Helm</p>
+                    <h3>Design Patterns: Elements of Reusable Object-Oriented Software</h3>
+                    <p class="author">Gamma, Helm, Johnson, Vlissides</p>
                     
                     <div class="book-details">
                         <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-0201633610</p>
@@ -84,26 +80,24 @@
                     </div>
 
                     <span class="status available">Disponible</span>
-                    <!-- Ícono en el botón de préstamo -->
                     <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
                 </div>
 
                 <!-- Libro 3 -->
                 <div class="book-card">
                     <div class="book-image-container">
-                        <img src="https://m.media-amazon.com/images/I/71X0BwAD+6L._AC_UF1000,1000_QL80_.jpg" alt="Ingeniería de Software" class="book-cover-img">
+                        <img src="ingenieria.jpg" alt="Ingeniería de Software" class="book-cover-img">
                     </div>
                     <h3>Ingeniería de Software: Un Enfoque Práctico</h3>
-                    <p class="author">Roger S. Pressman</p>
+                    <p class="author">Roger S. Pressman, Bruce R. Maxim</p>
                     
                     <div class="book-details">
-                        <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-6071503145</p>
-                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> 7ma Edición</p>
+                        <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-1456287714</p>
+                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> Novena Edición</p>
                         <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante B2, Software</p>
                     </div>
 
                     <span class="status unavailable">Prestado</span>
-                    <!-- Ícono en el botón deshabilitado -->
                     <button class="btn btn-secondary" disabled><i class="fa-solid fa-ban"></i> No Disponible</button>
                 </div>
             </div>

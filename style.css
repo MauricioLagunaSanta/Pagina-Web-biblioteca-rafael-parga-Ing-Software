@@ -267,7 +267,6 @@ button:disabled {
     .book-grid {
         grid-template-columns: 1fr;
     }
-<<<<<<< HEAD
 }
 
 /* --- ESTILOS PARA LA SECCIÓN DE PRÉSTAMOS --- */
@@ -285,6 +284,4 @@ button:disabled {
     margin-bottom: 1rem;
     font-size: 0.9rem;
     font-weight: bold;
-=======
->>>>>>> c3ce67916f00e3e1c5223a913f7e9ea614f7ade2
 }

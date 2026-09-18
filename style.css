@@ -364,55 +364,72 @@ button:disabled {
     color: white;
 }
 
-/* --- RESPONSIVIDAD PARA DISPOSITIVOS MÓVILES --- */
+/* --- COMPORTAMIENTO DEL ENCABEZADO (SMART HEADER) --- */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    /* Transición suave para ocultar/mostrar */
+    transition: transform 0.4s ease, opacity 0.4s ease; 
+}
+
+/* Compensa el espacio del header fijo para que no tape el contenido de la página */
+body {
+    padding-top: 140px; 
+}
+
+/* Clase dinámica que JavaScript agregará para ocultar el encabezado */
+.header-oculto {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+/* --- RESPONSIVIDAD MEJORADA PARA DISPOSITIVOS MÓVILES --- */
 @media screen and (max-width: 768px) {
-    /* Ajuste de los márgenes principales */
-    .container {
-        padding: 0 1rem;
+    body {
+        padding-top: 120px; /* El encabezado ocupa menos espacio vertical en celular */
     }
 
-    /* 1. Reorganización de los encabezados (Títulos y Botones) */
+    /* Solución al título aplastado */
     .catalog-header {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
         gap: 15px;
+        width: 100%;
     }
 
-    .header-buttons {
+    .section-title {
         width: 100%;
+        font-size: 1.6rem;
+        white-space: nowrap; /* Fuerza a que el texto se mantenga en una sola línea */
+    }
+
+    /* Organización horizontal de los botones debajo del título */
+    .header-buttons {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        width: 100%;
         gap: 10px;
     }
 
     .header-buttons .btn {
-        width: 100%; /* Los botones ocuparán todo el ancho de la pantalla */
-        margin: 0;
+        flex: 1; /* Ambos botones se reparten el 50% del ancho disponible */
+        padding: 10px 5px;
+        font-size: 0.85rem;
         text-align: center;
         justify-content: center;
     }
-
-    /* 2. Ajuste del formulario de Login */
-    .login-container {
-        padding: 2rem 1.5rem;
-    }
-
-    /* 3. Ajuste de la Tabla del Bibliotecario */
+    
+    /* Ajustes para la tabla del bibliotecario */
     .admin-table {
-        min-width: 600px; /* Obliga a la tabla a mantener un ancho mínimo */
+        min-width: 600px;
     }
     
     .admin-table th, .admin-table td {
         font-size: 0.85rem;
         padding: 8px 10px;
-        white-space: normal;
-    }
-
-    /* Opcional: Reducir ligeramente el tamaño de la fuente de los títulos largos en las tarjetas */
-    .book-card h3 {
-        font-size: 1rem;
-        height: auto;
-        min-height: 40px;
     }
 }

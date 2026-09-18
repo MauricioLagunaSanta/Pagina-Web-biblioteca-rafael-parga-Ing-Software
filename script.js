@@ -330,3 +330,40 @@ document.getElementById('btn-agregar-libro-modal').addEventListener('click', fun
         }
     });
 });
+
+// --- 8. ANIMACIÓN SMART HEADER (SCROLL Y MOUSE) ---
+const header = document.querySelector('header');
+let ultimoScrollY = window.scrollY;
+let temporizadorMouse;
+
+// Detectar dirección del scroll (Celular y PC)
+window.addEventListener('scroll', () => {
+    if (window.scrollY === 0) {
+        // Si está en el tope de la página, siempre se muestra
+        header.classList.remove('header-oculto');
+    } else if (window.scrollY > ultimoScrollY) {
+        // Si desliza hacia abajo, se oculta para dar espacio de lectura
+        header.classList.add('header-oculto');
+    } else {
+        // Si desliza hacia arriba, vuelve a aparecer
+        header.classList.remove('header-oculto');
+    }
+    ultimoScrollY = window.scrollY;
+});
+
+// Detectar movimiento del mouse (Principalmente para PC)
+window.addEventListener('mousemove', () => {
+    // Si mueve el mouse, aparece inmediatamente
+    header.classList.remove('header-oculto');
+    
+    // Reiniciar el contador de inactividad
+    clearTimeout(temporizadorMouse);
+    
+    // Si el usuario deja el mouse quieto por 2.5 segundos, se oculta
+    // (Solo se oculta si no está en la parte más alta de la página)
+    temporizadorMouse = setTimeout(() => {
+        if (window.scrollY > 50) {
+            header.classList.add('header-oculto');
+        }
+    }, 2500);
+});

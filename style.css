@@ -295,3 +295,29 @@ button:disabled {
     margin-bottom: 1rem;
     box-shadow: 0 4px 8px rgba(0,0,0,0.4);
 }
+
+/* --- ESTILOS PARA LA SECCIÓN "MIS PRÉSTAMOS" --- */
+.fecha-destacada {
+    background-color: var(--primary-blue);
+    padding: 12px;
+    border-left: 4px solid var(--accent-purple);
+    border-radius: 6px;
+    margin: 15px 0;
+    text-align: left;
+}
+
+.fecha-destacada p {
+    margin: 0;
+}
+
+.btn-edit-time {
+    background: transparent;
+    border: 2px solid var(--light-purple);
+    color: var(--text-light);
+    width: 100%;
+}
+
+.btn-edit-time:hover {
+    background-color: rgba(97, 0, 148, 0.2);
+    box-shadow: none;
+}

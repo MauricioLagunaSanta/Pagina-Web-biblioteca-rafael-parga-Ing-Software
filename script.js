@@ -1,57 +1,50 @@
-// Referencias a los elementos del DOM
+// --- 1. REFERENCIAS AL DOM ---
 const loginForm = document.getElementById('login-form');
-const btnSubmit = document.querySelector('#login-form .btn-primary');
-const msgElement = document.getElementById('login-message');
 const loginSection = document.getElementById('login-section');
 const catalogSection = document.getElementById('catalog-section');
 const misPrestamosSection = document.getElementById('mis-prestamos-section');
-const btnLogout = document.getElementById('btn-logout');
+
 const btnMisPrestamos = document.getElementById('btn-mis-prestamos');
 const btnVolverCatalogo = document.getElementById('btn-volver-catalogo');
+const btnLogout = document.getElementById('btn-logout');
+
 const gridPrestamosGuardados = document.getElementById('grid-prestamos-guardados');
 const mensajeVacio = document.getElementById('mensaje-vacio');
+const botonesPrestamo = document.querySelectorAll('.btn-prestamo');
 
-// 1. Lógica del sistema de login
-loginForm.addEventListener('submit', function(event) {
-    event.preventDefault();
-    const codigo = document.getElementById('codigo').value;
-    
-    btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Validando usuario...';
-    btnSubmit.style.opacity = '0.7';
-    btnSubmit.disabled = true;
-    
-    setTimeout(() => {
-        if(codigo.length < 4) {
-            msgElement.style.display = 'block';
-            msgElement.className = 'error-msg';
-            msgElement.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Código no válido.';
-            
-            btnSubmit.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Ingresar al Sistema';
-            btnSubmit.style.opacity = '1';
-            btnSubmit.disabled = false;
-        } else {
-            loginSection.classList.add('hidden');
-            catalogSection.classList.remove('hidden');
-            loginForm.reset();
-            btnSubmit.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Ingresar al Sistema';
-            btnSubmit.style.opacity = '1';
-            btnSubmit.disabled = false;
-            msgElement.style.display = 'none';
-        }
-    }, 1500);
+// --- 2. FUNCIONES DE FECHA ---
+// Formatea la fecha para el input type="datetime-local" (YYYY-MM-DDTHH:mm)
+function formatToLocalISO(date) {
+    const tzoffset = date.getTimezoneOffset() * 60000; 
+    return new Date(date.getTime() - tzoffset).toISOString().slice(0, 16);
+}
+
+// Formatea la fecha para que se vea bonita en pantalla
+function formatFriendlyDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleString('es-CO', { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+    });
+}
+
+// --- 3. LÓGICA DE NAVEGACIÓN ---
+loginForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    loginSection.classList.add('hidden');
+    catalogSection.classList.remove('hidden');
 });
 
-// 2. Navegación
 btnLogout.addEventListener('click', function() {
     catalogSection.classList.add('hidden');
     misPrestamosSection.classList.add('hidden');
     loginSection.classList.remove('hidden');
+    loginForm.reset();
 });
 
 btnMisPrestamos.addEventListener('click', function() {
     catalogSection.classList.add('hidden');
     misPrestamosSection.classList.remove('hidden');
-    cargarPrestamos(); // Cargamos los datos de la "base de datos"
+    cargarMisPrestamos();
 });
 
 btnVolverCatalogo.addEventListener('click', function() {
@@ -59,92 +52,110 @@ btnVolverCatalogo.addEventListener('click', function() {
     catalogSection.classList.remove('hidden');
 });
 
-// 3. Lógica para Guardar en "Base de Datos" (Local Storage)
-const botonesPrestamo = document.querySelectorAll('.btn-prestamo');
-
+// --- 4. SOLICITAR PRÉSTAMO (Máx 15 días, Mín 2 horas) ---
 botonesPrestamo.forEach(boton => {
-    boton.addEventListener('click', (event) => {
-        
+    boton.addEventListener('click', function() {
+        const card = this.closest('.book-card');
+        const idLibro = card.getAttribute('data-id');
+        const titulo = card.querySelector('h3').textContent;
+        const imagen = card.querySelector('img').src;
+        const autor = card.querySelector('.author').textContent;
+
+        // Calcular límites de tiempo
+        const now = new Date();
+        const minDate = new Date(now.getTime() + 2 * 60 * 60 * 1000); // Mínimo: ahora + 2 horas
+        const maxDate = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000); // Máximo: ahora + 15 días
+
+        const minStr = formatToLocalISO(minDate);
+        const maxStr = formatToLocalISO(maxDate);
+
         Swal.fire({
-            title: '¿Solicitar préstamo?',
-            text: "Recuerda que el plazo estándar es de 7 días según el reglamento.",
-            icon: 'question',
+            title: 'Configurar Préstamo',
+            html: `
+                <p>Libro: <strong>${titulo}</strong></p>
+                <p style="font-size: 0.9rem; color: #8b9bb4; margin-bottom: 15px;">
+                    Selecciona cuándo devolverás el libro.<br>
+                    (Mínimo 2 horas, Máximo 15 días)
+                </p>
+                <input type="datetime-local" id="fecha-devolucion" class="swal2-input" style="width: 85%;" min="${minStr}" max="${maxStr}">
+            `,
+            background: '#15224a',
+            color: '#e0e6ed',
             showCancelButton: true,
-            confirmButtonColor: '#610094', 
-            cancelButtonColor: '#08122c',  
-            confirmButtonText: '<i class="fa-solid fa-check"></i> Sí, solicitar',
-            cancelButtonText: 'Cancelar'
+            confirmButtonColor: '#610094',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Confirmar Préstamo',
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                const fechaSeleccionada = document.getElementById('fecha-devolucion').value;
+                if (!fechaSeleccionada) {
+                    Swal.showValidationMessage('Debes seleccionar una fecha y hora');
+                    return false;
+                }
+                const selected = new Date(fechaSeleccionada);
+                if (selected < minDate) {
+                    Swal.showValidationMessage('El tiempo mínimo de préstamo es de 2 horas.');
+                    return false;
+                }
+                if (selected > maxDate) {
+                    Swal.showValidationMessage('El tiempo máximo de préstamo es de 15 días.');
+                    return false;
+                }
+                return fechaSeleccionada;
+            }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Capturar datos de la tarjeta del libro a la que se le dio clic
-                const tarjeta = event.target.closest('.book-card');
-                const idLibro = tarjeta.getAttribute('data-id');
-                const titulo = tarjeta.querySelector('h3').innerText;
-                const autor = tarjeta.querySelector('.author').innerText;
-                const imagenSrc = tarjeta.querySelector('.book-cover-img').src;
-
-                // Calcular fecha de devolución (hoy + 7 días)
-                const fechaHoy = new Date();
-                fechaHoy.setDate(fechaHoy.getDate() + 7);
-                const fechaDevolucion = fechaHoy.toLocaleDateString('es-CO');
-
-                // Crear objeto libro
-                const libroPrestado = {
-                    id: idLibro,
-                    titulo: titulo,
-                    autor: autor,
-                    imagen: imagenSrc,
-                    devolucion: fechaDevolucion
-                };
-
-                // Traer libros anteriores del servidor virtual (localStorage)
-                let misLibros = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
+                // Guardar en la "Base de datos" (LocalStorage)
+                let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
                 
-                // Evitar guardar el mismo libro dos veces
-                const yaExiste = misLibros.find(libro => libro.id === idLibro);
-                if(!yaExiste) {
-                    misLibros.push(libroPrestado);
-                    localStorage.setItem('librosBiblioteca', JSON.stringify(misLibros));
+                // Evitar duplicados
+                if(!prestamos.find(l => l.id === idLibro)) {
+                    prestamos.push({
+                        id: idLibro,
+                        titulo: titulo,
+                        imagen: imagen,
+                        autor: autor,
+                        fechaDevolucion: result.value
+                    });
+                    localStorage.setItem('librosBiblioteca', JSON.stringify(prestamos));
                 }
 
-                // Actualizar interfaz del catálogo
-                boton.innerHTML = '<i class="fa-solid fa-check-double"></i> Préstamo Registrado';
-                boton.classList.remove('btn-primary');
-                boton.classList.add('btn-secondary');
-                boton.disabled = true;
-                
-                const statusBadge = boton.previousElementSibling;
-                if(statusBadge) {
-                    statusBadge.innerHTML = '<i class="fa-solid fa-user-clock"></i> En tu cuenta';
-                    statusBadge.classList.remove('available');
-                    statusBadge.classList.add('unavailable');
-                }
-                
-                Swal.fire(
-                    '¡Préstamo Registrado!',
-                    'El libro ha sido guardado en "Mis Préstamos".',
-                    'success'
-                );
+                // Cambiar estado visual del botón (Usando 1 sola palomilla)
+                this.innerHTML = '<i class="fa-solid fa-check"></i> PRÉSTAMO REGISTRADO';
+                this.classList.remove('btn-primary');
+                this.classList.add('btn-secondary');
+                this.disabled = true;
+
+                const statusBadge = card.querySelector('.status');
+                statusBadge.textContent = "Prestado (En tu cuenta)";
+                statusBadge.classList.remove('available');
+                statusBadge.classList.add('unavailable');
+
+                Swal.fire({
+                    title: '¡Registrado!',
+                    text: 'El libro está en tu cuenta. Pasa por la biblioteca a recogerlo.',
+                    icon: 'success',
+                    background: '#15224a',
+                    color: '#e0e6ed',
+                    confirmButtonColor: '#610094'
+                });
             }
         });
     });
 });
 
-// 4. Función para leer la "Base de Datos" y pintar los libros
-function cargarPrestamos() {
-    const misLibros = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
-    
-    // Limpiamos la grilla antes de dibujar
-    gridPrestamosGuardados.innerHTML = '';
+// --- 5. RENDERIZAR "MIS PRÉSTAMOS" ---
+function cargarMisPrestamos() {
+    let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
+    gridPrestamosGuardados.innerHTML = "";
 
-    if(misLibros.length === 0) {
+    if (prestamos.length === 0) {
         mensajeVacio.classList.remove('hidden');
     } else {
         mensajeVacio.classList.add('hidden');
         
-        // Dibujamos cada libro guardado
-        misLibros.forEach(libro => {
-            const libroHTML = `
+        prestamos.forEach(libro => {
+            const html = `
                 <div class="book-card">
                     <div class="book-image-container">
                         <img src="${libro.imagen}" alt="Portada" class="book-cover-img">
@@ -152,38 +163,97 @@ function cargarPrestamos() {
                     <h3>${libro.titulo}</h3>
                     <p class="author">${libro.autor}</p>
                     
-                    <div class="fecha-devolucion">
-                        <i class="fa-solid fa-calendar-day"></i> Devolución: ${libro.devolucion}
+                    <div class="fecha-destacada">
+                        <p style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Devolución programada:</p>
+                        <p><strong><i class="fa-regular fa-calendar-check"></i> ${formatFriendlyDate(libro.fechaDevolucion)}</strong></p>
                     </div>
-                    
-                    <button class="btn btn-secondary" disabled><i class="fa-solid fa-clock"></i> Préstamo Activo</button>
+
+                    <button class="btn btn-edit-time" onclick="editarTiempo('${libro.id}')">
+                        <i class="fa-solid fa-pen-to-square"></i> Devolver más rápido
+                    </button>
                 </div>
             `;
-            gridPrestamosGuardados.innerHTML += libroHTML;
+            gridPrestamosGuardados.innerHTML += html;
         });
     }
 }
 
-// Inicializar la validación visual si el libro ya estaba prestado en sesiones anteriores
-document.addEventListener('DOMContentLoaded', () => {
-    const misLibros = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
+// --- 6. EDITAR TIEMPO (Acortar fecha) ---
+// Usamos window. para que sea accesible desde el onclick del HTML inyectado
+window.editarTiempo = function(idLibro) {
+    let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
+    let index = prestamos.findIndex(l => l.id === idLibro);
     
-    misLibros.forEach(libroGuardado => {
-        const tarjeta = document.querySelector(`.book-card[data-id="${libroGuardado.id}"]`);
-        if(tarjeta) {
-            const boton = tarjeta.querySelector('.btn-prestamo');
-            const statusBadge = tarjeta.querySelector('.status');
-            
-            if(boton && statusBadge) {
-                boton.innerHTML = '<i class="fa-solid fa-check"></i> PRÉSTAMO REGISTRADO';
-                boton.classList.remove('btn-primary');
-                boton.classList.add('btn-secondary');
-                boton.disabled = true;
-                
-                statusBadge.innerHTML = '<i class="fa-solid fa-user-clock"></i> En tu cuenta';
-                statusBadge.classList.remove('available');
-                statusBadge.classList.add('unavailable');
+    if (index === -1) return;
+    let libro = prestamos[index];
+
+    const now = new Date();
+    const minDate = new Date(now.getTime() + 2 * 60 * 60 * 1000); // 2 horas mínimo
+    const maxDate = new Date(libro.fechaDevolucion); // Límite máximo: la fecha que ya tenía
+
+    // Si el tiempo mínimo (ahora + 2h) ya supera su fecha de entrega actual, no puede acortar más
+    if (minDate >= maxDate) {
+        Swal.fire({
+            title: 'No es posible editar',
+            text: 'Faltan menos de 2 horas para tu fecha límite actual. Ya no puedes acortar más el plazo de entrega.',
+            icon: 'warning',
+            background: '#15224a',
+            color: '#e0e6ed',
+            confirmButtonColor: '#610094'
+        });
+        return;
+    }
+
+    const minStr = formatToLocalISO(minDate);
+    const maxStr = formatToLocalISO(maxDate);
+
+    Swal.fire({
+        title: 'Adelantar Devolución',
+        html: `
+            <p style="font-size: 0.9rem; margin-bottom: 15px;">Solo puedes elegir una fecha anterior a la programada actualmente.</p>
+            <input type="datetime-local" id="nueva-fecha" class="swal2-input" style="width: 85%;" min="${minStr}" max="${maxStr}">
+        `,
+        background: '#15224a',
+        color: '#e0e6ed',
+        showCancelButton: true,
+        confirmButtonColor: '#610094',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Actualizar',
+        cancelButtonText: 'Cancelar',
+        preConfirm: () => {
+            const nuevaF = document.getElementById('nueva-fecha').value;
+            if (!nuevaF) {
+                Swal.showValidationMessage('Selecciona una nueva fecha');
+                return false;
             }
+            const selected = new Date(nuevaF);
+            if (selected < minDate) {
+                Swal.showValidationMessage('El mínimo sigue siendo 2 horas.');
+                return false;
+            }
+            if (selected > maxDate) {
+                Swal.showValidationMessage('No puedes extender el tiempo, solo adelantarlo.');
+                return false;
+            }
+            return nuevaF;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Actualizar el array y guardar
+            prestamos[index].fechaDevolucion = result.value;
+            localStorage.setItem('librosBiblioteca', JSON.stringify(prestamos));
+            
+            // Recargar la vista
+            cargarMisPrestamos();
+            
+            Swal.fire({
+                title: '¡Actualizado!',
+                text: 'Has adelantado tu fecha de devolución.',
+                icon: 'success',
+                background: '#15224a',
+                color: '#e0e6ed',
+                confirmButtonColor: '#610094'
+            });
         }
     });
-});
+};

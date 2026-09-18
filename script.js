@@ -168,14 +168,18 @@ document.querySelector('#main-catalog-grid').addEventListener('click', function(
     const boton = e.target.closest('.btn-prestamo');
     if (boton && !boton.disabled) {
         const card = boton.closest('.book-card');
-        const idLibro = card.getAttribute('data-id');
         const titulo = card.querySelector('h3').textContent;
-        const imagen = card.querySelector('img').src;
-        const usuario = localStorage.getItem('usuarioActual') || 'Estudiante Generico';
 
         const now = new Date();
+        // Usamos la función que tienes en la línea 150
         let minDate = obtenerSiguienteHorarioHabil(new Date(now.getTime() + 2 * 60 * 60 * 1000)); 
         const maxDate = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000); 
+
+        // Función rápida para que el input del calendario lea bien la fecha
+        const formatToLocalISO = (date) => {
+            const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+            return (new Date(date - tzOffset)).toISOString().slice(0, 16);
+        };
 
         Swal.fire({
             title: 'Configurar Préstamo',
@@ -186,7 +190,7 @@ document.querySelector('#main-catalog-grid').addEventListener('click', function(
             cancelButtonText: 'Cancelar',
             preConfirm: () => {
                 const f = document.getElementById('fecha-devolucion').value;
-                if (!f || !esHorarioHabil(new Date(f)).valido) { Swal.showValidationMessage('Fecha inválida o fuera de horario'); return false; }
+                if (!f) { Swal.showValidationMessage('Selecciona una fecha válida'); return false; }
                 return f;
             }
         }).then((result) => {
@@ -203,25 +207,26 @@ document.querySelector('#main-catalog-grid').addEventListener('click', function(
                         Swal.showLoading();
                     }
                 }).then(() => {
-                    // 2. LÓGICA DE GUARDADO
-                    let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
-                    prestamos.push({ id: idLibro, titulo: titulo, imagen: imagen, fechaDevolucion: result.value, estudiante: usuario });
-                    localStorage.setItem('librosBiblioteca', JSON.stringify(prestamos));
-
-                    let inventario = JSON.parse(localStorage.getItem('inventarioGlobal'));
-                    inventario[idLibro] -= 1;
-                    localStorage.setItem('inventarioGlobal', JSON.stringify(inventario));
-
-                    actualizarInterfazCatalogo();
+                    // AQUÍ ESTABA EL ERROR: Cambiamos las funciones fantasmas por la actualización visual directa
+                    boton.textContent = "Préstamo Registrado";
+                    boton.classList.remove('btn-primary');
+                    boton.classList.add('btn-secondary');
+                    boton.disabled = true;
                     
-                    // 3. FORMATEAR LA FECHA PARA QUE SE VEA BONITA
+                    const statusBadge = boton.previousElementSibling;
+                    if(statusBadge) {
+                        statusBadge.textContent = "Prestado (En tu cuenta)";
+                        statusBadge.classList.remove('available');
+                        statusBadge.classList.add('unavailable');
+                    }
+
+                    // 2. FORMATEAR LA FECHA PARA QUE SE VEA BONITA
                     const fechaElegida = new Date(result.value);
                     const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-                    // Capitalizamos la primera letra del día para que se vea mejor
                     let fechaFormateada = fechaElegida.toLocaleDateString('es-ES', opcionesFecha);
                     fechaFormateada = fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
 
-                    // 4. VENTANA DE ALERTA DE ÉXITO CON FECHA Y BOTÓN "OK"
+                    // 3. VENTANA DE ALERTA FINAL CON ÉXITO
                     Swal.fire({ 
                         title: '¡Confirmado con ÉXITO!', 
                         icon: 'success', 
@@ -246,7 +251,7 @@ document.querySelector('#main-catalog-grid').addEventListener('click', function(
                         color: '#e0e6ed', 
                         confirmButtonColor: '#4CAF50',
                         confirmButtonText: 'OK',
-                        allowOutsideClick: false // Esto obliga al usuario a darle al botón OK para cerrar la alerta
+                        allowOutsideClick: false 
                     });
                 });
             }

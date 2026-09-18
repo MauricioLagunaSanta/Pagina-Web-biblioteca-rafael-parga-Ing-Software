@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusBadge = tarjeta.querySelector('.status');
             
             if(boton && statusBadge) {
-                boton.innerHTML = '<i class="fa-solid fa-check-double"></i> Préstamo Registrado';
+                boton.innerHTML = '<i class="fa-solid fa-check"></i> PRÉSTAMO REGISTRADO';
                 boton.classList.remove('btn-primary');
                 boton.classList.add('btn-secondary');
                 boton.disabled = true;

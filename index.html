@@ -4,19 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biblioteca Rafael Parga Cortés</title>
-    <link rel="stylesheet" href="style.css">
-
-    <!-- Librería de Íconos: FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Biblioteca Rafael Parga Cortés</title>
+    
+    <!-- Hoja de estilos -->
     <link rel="stylesheet" href="style.css">
 
     <!-- Librería de Íconos: FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- LIBRERÍA DE ALERTAS: SweetAlert2 (¡Esta es la que faltaba!) -->
+    <!-- LIBRERÍA DE ALERTAS: SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
@@ -28,7 +23,7 @@
 
     <main class="container">
         
-        <!-- SECCIÓN DE LOGIN (Restaurada) -->
+        <!-- SECCIÓN DE LOGIN -->
         <section id="login-section" class="ui-section">
             <div class="login-container">
                 <h2 style="margin-bottom: 1.5rem; text-align: center;"><i class="fa-solid fa-user-graduate"></i> Acceso de Estudiantes</h2>
@@ -47,7 +42,7 @@
             </div>
         </section>
 
-<!-- SECCIÓN DEL CATÁLOGO -->
+        <!-- SECCIÓN DEL CATÁLOGO -->
         <section id="catalog-section" class="hidden">
             <div class="catalog-header">
                 <h2 class="section-title">Catálogo de Libros</h2>
@@ -57,7 +52,9 @@
                 </div>
             </div>
             
+            <!-- APERTURA DE LA CUADRÍCULA (GRID) PARA TODOS LOS LIBROS -->
             <div class="book-grid">
+                
                 <!-- Libro 1 -->
                 <div class="book-card" data-id="1">
                     <div class="book-image-container">
@@ -105,7 +102,57 @@
                     <span class="status unavailable">Prestado</span>
                     <button class="btn btn-secondary" disabled><i class="fa-solid fa-ban"></i> No Disponible</button>
                 </div>
-            </div>
+
+                <!-- Libro 4: La Odisea -->
+                <div class="book-card" data-id="4">
+                    <div class="book-image-container">
+                        <img src="la_odisea_homero.jpg" alt="Portada La Odisea" class="book-cover-img">
+                    </div>
+                    <h3>La Odisea</h3>
+                    <p class="author">Homero</p>
+                    <div class="book-details">
+                        <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-8423342516</p>
+                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> Montaner y Simón</p>
+                        <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante C1, Literatura</p>
+                    </div>
+                    <span class="status available">Disponible</span>
+                    <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
+                </div>
+
+                <!-- Libro 5: Cien Años de Soledad -->
+                <div class="book-card" data-id="5">
+                    <div class="book-image-container">
+                        <img src="cien_años_de_soledad.jpg" alt="Portada Cien Años de Soledad" class="book-cover-img">
+                    </div>
+                    <h3>Cien Años de Soledad</h3>
+                    <p class="author">Gabriel García Márquez</p>
+                    <div class="book-details">
+                        <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-0307474728</p>
+                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> Conmemorativa RAE</p>
+                        <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante C2, Literatura</p>
+                    </div>
+                    <span class="status available">Disponible</span>
+                    <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
+                </div>
+
+                <!-- Libro 6: El Principito -->
+                <div class="book-card" data-id="6">
+                    <div class="book-image-container">
+                        <img src="el-principito-edicion-original.jpg" alt="Portada El Principito" class="book-cover-img">
+                    </div>
+                    <h3>El Principito</h3>
+                    <p class="author">Antoine de Saint-Exupéry</p>
+                    <div class="book-details">
+                        <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-8498381498</p>
+                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> Salamandra</p>
+                        <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante C3, Literatura</p>
+                    </div>
+                    <span class="status available">Disponible</span>
+                    <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
+                </div>
+
+            </div> <!-- CIERRE CORRECTO DE LA CUADRÍCULA (GRID) -->
+
         </section>
 
         <!-- NUEVA SECCIÓN: MIS PRÉSTAMOS -->

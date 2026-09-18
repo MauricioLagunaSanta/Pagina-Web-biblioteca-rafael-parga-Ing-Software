@@ -364,35 +364,55 @@ button:disabled {
     color: white;
 }
 
-/* --- COMPORTAMIENTO DEL ENCABEZADO (SMART HEADER) --- */
+/* --- COMPORTAMIENTO DEL ENCABEZADO (SMART HEADER MEJORADO) --- */
 header {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     z-index: 1000;
-    /* Transición suave para ocultar/mostrar */
-    transition: transform 0.4s ease, opacity 0.4s ease; 
+    /* Fondo 100% sólido para que los libros no se vean por debajo */
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-purple) 100%);
+    /* Reducimos el padding (espaciado interno) para hacerlo más delgado */
+    padding: 1rem 5%; 
+    text-align: center;
+    border-bottom: 3px solid var(--light-purple);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
+    transition: transform 0.3s ease-in-out; 
 }
 
-/* Compensa el espacio del header fijo para que no tape el contenido de la página */
+header h1 {
+    font-size: 1.8rem; /* Tamaño de letra ligeramente menor */
+    margin-bottom: 0.2rem; /* Menor interlineado con el subtítulo */
+    line-height: 1.2;
+}
+
+header p {
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* Compensa exactamente el nuevo tamaño del encabezado fijo */
 body {
-    padding-top: 140px; 
+    padding-top: 100px; 
 }
 
-/* Clase dinámica que JavaScript agregará para ocultar el encabezado */
 .header-oculto {
     transform: translateY(-100%);
-    opacity: 0;
 }
 
-/* --- RESPONSIVIDAD MEJORADA PARA DISPOSITIVOS MÓVILES --- */
+/* --- RESPONSIVIDAD PARA DISPOSITIVOS MÓVILES --- */
 @media screen and (max-width: 768px) {
     body {
-        padding-top: 120px; /* El encabezado ocupa menos espacio vertical en celular */
+        padding-top: 90px; 
     }
-
-    /* Solución al título aplastado */
+    header h1 {
+        font-size: 1.5rem;
+    }
+    header p {
+        font-size: 0.85rem;
+    }
+    
     .catalog-header {
         display: flex;
         flex-direction: column;
@@ -400,34 +420,27 @@ body {
         gap: 15px;
         width: 100%;
     }
-
     .section-title {
         width: 100%;
         font-size: 1.6rem;
-        white-space: nowrap; /* Fuerza a que el texto se mantenga en una sola línea */
+        white-space: nowrap; 
     }
-
-    /* Organización horizontal de los botones debajo del título */
     .header-buttons {
         display: flex;
         flex-direction: row;
         width: 100%;
         gap: 10px;
     }
-
     .header-buttons .btn {
-        flex: 1; /* Ambos botones se reparten el 50% del ancho disponible */
+        flex: 1; 
         padding: 10px 5px;
         font-size: 0.85rem;
         text-align: center;
         justify-content: center;
     }
-    
-    /* Ajustes para la tabla del bibliotecario */
     .admin-table {
         min-width: 600px;
     }
-    
     .admin-table th, .admin-table td {
         font-size: 0.85rem;
         padding: 8px 10px;

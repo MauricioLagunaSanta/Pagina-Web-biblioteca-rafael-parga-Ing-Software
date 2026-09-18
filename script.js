@@ -179,8 +179,11 @@ document.querySelector('#main-catalog-grid').addEventListener('click', function(
 
         Swal.fire({
             title: 'Configurar Préstamo',
-            html: `<p><strong>${titulo}</strong></p><input type="datetime-local" id="fecha-devolucion" class="swal2-input" style="width: 85%;" min="${formatToLocalISO(minDate)}" max="${formatToLocalISO(maxDate)}">`,
+            html: `<p style="margin-bottom: 15px;"><strong>${titulo}</strong></p>
+                   <input type="datetime-local" id="fecha-devolucion" class="swal2-input" style="width: 85%;" min="${formatToLocalISO(minDate)}" max="${formatToLocalISO(maxDate)}">`,
             background: '#15224a', color: '#e0e6ed', showCancelButton: true, confirmButtonColor: '#610094',
+            confirmButtonText: '<i class="fa-solid fa-check"></i> Apartar Libro',
+            cancelButtonText: 'Cancelar',
             preConfirm: () => {
                 const f = document.getElementById('fecha-devolucion').value;
                 if (!f || !esHorarioHabil(new Date(f)).valido) { Swal.showValidationMessage('Fecha inválida o fuera de horario'); return false; }
@@ -188,16 +191,64 @@ document.querySelector('#main-catalog-grid').addEventListener('click', function(
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
-                prestamos.push({ id: idLibro, titulo: titulo, imagen: imagen, fechaDevolucion: result.value, estudiante: usuario });
-                localStorage.setItem('librosBiblioteca', JSON.stringify(prestamos));
+                // 1. ANIMACIÓN DE CARGA
+                Swal.fire({
+                    title: 'Validando inventario...',
+                    html: 'Conectando con la base de datos de la biblioteca.',
+                    timer: 1500,
+                    timerProgressBar: true,
+                    background: '#15224a',
+                    color: '#e0e6ed',
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                }).then(() => {
+                    // 2. LÓGICA DE GUARDADO
+                    let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
+                    prestamos.push({ id: idLibro, titulo: titulo, imagen: imagen, fechaDevolucion: result.value, estudiante: usuario });
+                    localStorage.setItem('librosBiblioteca', JSON.stringify(prestamos));
 
-                let inventario = JSON.parse(localStorage.getItem('inventarioGlobal'));
-                inventario[idLibro] -= 1;
-                localStorage.setItem('inventarioGlobal', JSON.stringify(inventario));
+                    let inventario = JSON.parse(localStorage.getItem('inventarioGlobal'));
+                    inventario[idLibro] -= 1;
+                    localStorage.setItem('inventarioGlobal', JSON.stringify(inventario));
 
-                actualizarInterfazCatalogo();
-                Swal.fire({ title: '¡Registrado!', icon: 'success', background: '#15224a', color: '#e0e6ed', confirmButtonColor: '#610094' });
+                    actualizarInterfazCatalogo();
+                    
+                    // 3. FORMATEAR LA FECHA PARA QUE SE VEA BONITA
+                    const fechaElegida = new Date(result.value);
+                    const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                    // Capitalizamos la primera letra del día para que se vea mejor
+                    let fechaFormateada = fechaElegida.toLocaleDateString('es-ES', opcionesFecha);
+                    fechaFormateada = fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
+
+                    // 4. VENTANA DE ALERTA DE ÉXITO CON FECHA Y BOTÓN "OK"
+                    Swal.fire({ 
+                        title: '¡Confirmado con ÉXITO!', 
+                        icon: 'success', 
+                        html: `
+                            <div style="text-align: center; margin-top: 10px;">
+                                <p style="font-size: 1.05rem; margin-bottom: 15px;">Tu préstamo ha sido registrado en el sistema.</p>
+                                
+                                <div style="background: rgba(97, 0, 148, 0.2); padding: 15px; border-radius: 8px; border: 1px solid #610094; margin-bottom: 15px;">
+                                    <i class="fa-solid fa-calendar-check" style="color: #4CAF50; font-size: 2rem; margin-bottom: 10px;"></i>
+                                    <p style="margin: 0; font-size: 0.95rem; color: #b3c2d6;">
+                                        Debes devolver el ejemplar máximo el:<br>
+                                        <b style="color: #e0e6ed; font-size: 1.1rem; display: block; margin-top: 8px;">${fechaFormateada}</b>
+                                    </p>
+                                </div>
+                                
+                                <p style="margin: 0; font-size: 0.85rem; color: #8b9bb4;">
+                                    * Recuerda pasar a recogerlo pronto dentro del horario hábil.
+                                </p>
+                            </div>
+                        `,
+                        background: '#15224a', 
+                        color: '#e0e6ed', 
+                        confirmButtonColor: '#4CAF50',
+                        confirmButtonText: 'OK',
+                        allowOutsideClick: false // Esto obliga al usuario a darle al botón OK para cerrar la alerta
+                    });
+                });
             }
         });
     }
@@ -331,39 +382,23 @@ document.getElementById('btn-agregar-libro-modal').addEventListener('click', fun
     });
 });
 
-// --- 8. ANIMACIÓN SMART HEADER (SCROLL Y MOUSE) ---
+// --- 8. ANIMACIÓN SMART HEADER (SOLO SCROLL) ---
 const header = document.querySelector('header');
 let ultimoScrollY = window.scrollY;
-let temporizadorMouse;
 
-// Detectar dirección del scroll (Celular y PC)
 window.addEventListener('scroll', () => {
-    if (window.scrollY === 0) {
-        // Si está en el tope de la página, siempre se muestra
+    // Si el usuario está en la parte más alta de la página, el encabezado siempre se muestra
+    if (window.scrollY <= 50) {
         header.classList.remove('header-oculto');
-    } else if (window.scrollY > ultimoScrollY) {
-        // Si desliza hacia abajo, se oculta para dar espacio de lectura
+    } 
+    // Si el usuario desliza hacia abajo, el encabezado se oculta
+    else if (window.scrollY > ultimoScrollY) {
         header.classList.add('header-oculto');
-    } else {
-        // Si desliza hacia arriba, vuelve a aparecer
+    } 
+    // Si el usuario desliza hacia arriba, el encabezado reaparece
+    else {
         header.classList.remove('header-oculto');
     }
+    
     ultimoScrollY = window.scrollY;
-});
-
-// Detectar movimiento del mouse (Principalmente para PC)
-window.addEventListener('mousemove', () => {
-    // Si mueve el mouse, aparece inmediatamente
-    header.classList.remove('header-oculto');
-    
-    // Reiniciar el contador de inactividad
-    clearTimeout(temporizadorMouse);
-    
-    // Si el usuario deja el mouse quieto por 2.5 segundos, se oculta
-    // (Solo se oculta si no está en la parte más alta de la página)
-    temporizadorMouse = setTimeout(() => {
-        if (window.scrollY > 50) {
-            header.classList.add('header-oculto');
-        }
-    }, 2500);
 });

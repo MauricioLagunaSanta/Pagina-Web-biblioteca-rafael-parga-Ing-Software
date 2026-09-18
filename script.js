@@ -3,42 +3,120 @@ const loginForm = document.getElementById('login-form');
 const loginSection = document.getElementById('login-section');
 const catalogSection = document.getElementById('catalog-section');
 const misPrestamosSection = document.getElementById('mis-prestamos-section');
+const librarianSection = document.getElementById('librarian-section');
 
 const btnMisPrestamos = document.getElementById('btn-mis-prestamos');
 const btnVolverCatalogo = document.getElementById('btn-volver-catalogo');
-const btnLogout = document.getElementById('btn-logout');
+const btnsLogout = document.querySelectorAll('.btn-logout-general');
 
-const gridPrestamosGuardados = document.getElementById('grid-prestamos-guardados');
-const mensajeVacio = document.getElementById('mensaje-vacio');
-const botonesPrestamo = document.querySelectorAll('.btn-prestamo');
+// --- 2. BASE DE DATOS VIRTUAL ---
+const inventarioInicial = {
+    '1': 5, '2': 5, '3': 0, '4': 5, '5': 5, '6': 5
+};
 
-// --- 2. FUNCIONES DE FECHA ---
-// Formatea la fecha para el input type="datetime-local" (YYYY-MM-DDTHH:mm)
-function formatToLocalISO(date) {
-    const tzoffset = date.getTimezoneOffset() * 60000; 
-    return new Date(date.getTime() - tzoffset).toISOString().slice(0, 16);
+function inicializarSistema() {
+    if (!localStorage.getItem('inventarioGlobal')) {
+        localStorage.setItem('inventarioGlobal', JSON.stringify(inventarioInicial));
+    }
+    // Inyectar libros creados por el bibliotecario al DOM antes de actualizar interfaz
+    inyectarLibrosNuevos();
+    actualizarInterfazCatalogo();
 }
 
-// Formatea la fecha para que se vea bonita en pantalla
-function formatFriendlyDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleString('es-CO', { 
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+function inyectarLibrosNuevos() {
+    const nuevosLibros = JSON.parse(localStorage.getItem('librosNuevos')) || [];
+    const grid = document.getElementById('main-catalog-grid');
+    
+    nuevosLibros.forEach(libro => {
+        // Evitar duplicados si ya está en el HTML
+        if(!document.querySelector(`.book-card[data-id="${libro.id}"]`)) {
+            grid.innerHTML += `
+                <div class="book-card" data-id="${libro.id}">
+                    <div class="book-image-container"><img src="${libro.imagen}" class="book-cover-img"></div>
+                    <h3>${libro.titulo}</h3>
+                    <p class="author">${libro.autor}</p>
+                    <div class="book-details">
+                        <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> ${libro.isbn}</p>
+                        <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> ${libro.ubicacion}</p>
+                        <p class="inventario-info"><strong><i class="fa-solid fa-boxes-stacked"></i> Ejemplares:</strong> <span class="stock-count">${libro.stock}</span>/${libro.stockMax}</p>
+                    </div>
+                    <span class="status available">Disponible</span>
+                    <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
+                </div>
+            `;
+        }
     });
 }
 
-// --- 3. LÓGICA DE NAVEGACIÓN ---
+function actualizarInterfazCatalogo() {
+    let inventario = JSON.parse(localStorage.getItem('inventarioGlobal'));
+    let misPrestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
+
+    document.querySelectorAll('.book-card').forEach(card => {
+        const id = card.getAttribute('data-id');
+        const stockActual = inventario[id];
+        const spanStock = card.querySelector('.stock-count');
+        const infoInventario = card.querySelector('.inventario-info');
+        const boton = card.querySelector('.btn-prestamo');
+        const statusBadge = card.querySelector('.status');
+
+        if(spanStock) spanStock.textContent = stockActual;
+
+        const yaPrestado = misPrestamos.find(l => l.id === id);
+
+        if (yaPrestado) {
+            boton.innerHTML = '<i class="fa-solid fa-check"></i> PRÉSTAMO REGISTRADO';
+            boton.className = 'btn btn-secondary btn-prestamo';
+            boton.disabled = true;
+            statusBadge.textContent = "Prestado";
+            statusBadge.className = 'status unavailable';
+            if(infoInventario) infoInventario.classList.remove('inventario-agotado');
+        } else if (stockActual === 0) {
+            boton.innerHTML = '<i class="fa-solid fa-ban"></i> AGOTADO';
+            boton.className = 'btn btn-secondary btn-prestamo';
+            boton.disabled = true;
+            statusBadge.textContent = "Sin Ejemplares";
+            statusBadge.className = 'status unavailable';
+            if(infoInventario) infoInventario.classList.add('inventario-agotado');
+        } else {
+            boton.innerHTML = '<i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo';
+            boton.className = 'btn btn-primary btn-prestamo';
+            boton.disabled = false;
+            statusBadge.textContent = "Disponible";
+            statusBadge.className = 'status available';
+            if(infoInventario) infoInventario.classList.remove('inventario-agotado');
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', inicializarSistema);
+
+// --- 3. LÓGICA DE NAVEGACIÓN Y LOGIN ---
 loginForm.addEventListener('submit', function(e) {
     e.preventDefault();
+    const rol = document.getElementById('rol').value;
+    const credencial = document.getElementById('codigo').value;
+    
     loginSection.classList.add('hidden');
-    catalogSection.classList.remove('hidden');
+    
+    if(rol === 'estudiante') {
+        catalogSection.classList.remove('hidden');
+        localStorage.setItem('usuarioActual', credencial);
+        actualizarInterfazCatalogo();
+    } else {
+        librarianSection.classList.remove('hidden');
+        cargarPanelBibliotecario();
+    }
 });
 
-btnLogout.addEventListener('click', function() {
-    catalogSection.classList.add('hidden');
-    misPrestamosSection.classList.add('hidden');
-    loginSection.classList.remove('hidden');
-    loginForm.reset();
+btnsLogout.forEach(btn => {
+    btn.addEventListener('click', function() {
+        catalogSection.classList.add('hidden');
+        misPrestamosSection.classList.add('hidden');
+        librarianSection.classList.add('hidden');
+        loginSection.classList.remove('hidden');
+        loginForm.reset();
+    });
 });
 
 btnMisPrestamos.addEventListener('click', function() {
@@ -50,210 +128,205 @@ btnMisPrestamos.addEventListener('click', function() {
 btnVolverCatalogo.addEventListener('click', function() {
     misPrestamosSection.classList.add('hidden');
     catalogSection.classList.remove('hidden');
+    actualizarInterfazCatalogo();
 });
 
-// --- 4. SOLICITAR PRÉSTAMO (Máx 15 días, Mín 2 horas) ---
-botonesPrestamo.forEach(boton => {
-    boton.addEventListener('click', function() {
-        const card = this.closest('.book-card');
+// --- 4. FUNCIONES DE FECHA ---
+function formatToLocalISO(date) {
+    const tzoffset = date.getTimezoneOffset() * 60000; 
+    return new Date(date.getTime() - tzoffset).toISOString().slice(0, 16);
+}
+function formatFriendlyDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function esHorarioHabil(fecha) {
+    const dia = fecha.getDay(); 
+    const minDia = fecha.getHours() * 60 + fecha.getMinutes();
+    if (dia === 0 || dia === 6) return { valido: false, mensaje: 'Fines de semana no hay servicio.' };
+    if (minDia < (8*60+30) || minDia > (18*60+30)) return { valido: false, mensaje: 'Horario: 8:30am a 6:30pm.' };
+    return { valido: true };
+}
+function obtenerSiguienteHorarioHabil(fechaBase) {
+    let min = new Date(fechaBase);
+    let dia = min.getDay(), hora = min.getHours(), minutos = min.getMinutes();
+    let minActual = hora * 60 + minutos;
+    if (dia === 6) { min.setDate(min.getDate() + 2); min.setHours(8, 30, 0, 0); } 
+    else if (dia === 0) { min.setDate(min.getDate() + 1); min.setHours(8, 30, 0, 0); } 
+    else {
+        if (minActual < (8*60+30)) { min.setHours(8, 30, 0, 0); } 
+        else if (minActual > (18*60+30)) {
+            min.setDate(min.getDate() + (dia === 5 ? 3 : 1));
+            min.setHours(8, 30, 0, 0);
+        }
+    }
+    return min;
+}
+
+// --- 5. SOLICITAR PRÉSTAMO (ESTUDIANTE) ---
+document.querySelector('#main-catalog-grid').addEventListener('click', function(e) {
+    const boton = e.target.closest('.btn-prestamo');
+    if (boton && !boton.disabled) {
+        const card = boton.closest('.book-card');
         const idLibro = card.getAttribute('data-id');
         const titulo = card.querySelector('h3').textContent;
         const imagen = card.querySelector('img').src;
-        const autor = card.querySelector('.author').textContent;
+        const usuario = localStorage.getItem('usuarioActual') || 'Estudiante Generico';
 
-        // Calcular límites de tiempo
         const now = new Date();
-        const minDate = new Date(now.getTime() + 2 * 60 * 60 * 1000); // Mínimo: ahora + 2 horas
-        const maxDate = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000); // Máximo: ahora + 15 días
-
-        const minStr = formatToLocalISO(minDate);
-        const maxStr = formatToLocalISO(maxDate);
+        let minDate = obtenerSiguienteHorarioHabil(new Date(now.getTime() + 2 * 60 * 60 * 1000)); 
+        const maxDate = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000); 
 
         Swal.fire({
             title: 'Configurar Préstamo',
-            html: `
-                <p>Libro: <strong>${titulo}</strong></p>
-                <p style="font-size: 0.9rem; color: #8b9bb4; margin-bottom: 15px;">
-                    Selecciona cuándo devolverás el libro.<br>
-                    (Mínimo 2 horas, Máximo 15 días)
-                </p>
-                <input type="datetime-local" id="fecha-devolucion" class="swal2-input" style="width: 85%;" min="${minStr}" max="${maxStr}">
-            `,
-            background: '#15224a',
-            color: '#e0e6ed',
-            showCancelButton: true,
-            confirmButtonColor: '#610094',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Confirmar Préstamo',
-            cancelButtonText: 'Cancelar',
+            html: `<p><strong>${titulo}</strong></p><input type="datetime-local" id="fecha-devolucion" class="swal2-input" style="width: 85%;" min="${formatToLocalISO(minDate)}" max="${formatToLocalISO(maxDate)}">`,
+            background: '#15224a', color: '#e0e6ed', showCancelButton: true, confirmButtonColor: '#610094',
             preConfirm: () => {
-                const fechaSeleccionada = document.getElementById('fecha-devolucion').value;
-                if (!fechaSeleccionada) {
-                    Swal.showValidationMessage('Debes seleccionar una fecha y hora');
-                    return false;
-                }
-                const selected = new Date(fechaSeleccionada);
-                if (selected < minDate) {
-                    Swal.showValidationMessage('El tiempo mínimo de préstamo es de 2 horas.');
-                    return false;
-                }
-                if (selected > maxDate) {
-                    Swal.showValidationMessage('El tiempo máximo de préstamo es de 15 días.');
-                    return false;
-                }
-                return fechaSeleccionada;
+                const f = document.getElementById('fecha-devolucion').value;
+                if (!f || !esHorarioHabil(new Date(f)).valido) { Swal.showValidationMessage('Fecha inválida o fuera de horario'); return false; }
+                return f;
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Guardar en la "Base de datos" (LocalStorage)
                 let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
-                
-                // Evitar duplicados
-                if(!prestamos.find(l => l.id === idLibro)) {
-                    prestamos.push({
-                        id: idLibro,
-                        titulo: titulo,
-                        imagen: imagen,
-                        autor: autor,
-                        fechaDevolucion: result.value
-                    });
-                    localStorage.setItem('librosBiblioteca', JSON.stringify(prestamos));
-                }
+                prestamos.push({ id: idLibro, titulo: titulo, imagen: imagen, fechaDevolucion: result.value, estudiante: usuario });
+                localStorage.setItem('librosBiblioteca', JSON.stringify(prestamos));
 
-                // Cambiar estado visual del botón (Usando 1 sola palomilla)
-                this.innerHTML = '<i class="fa-solid fa-check"></i> PRÉSTAMO REGISTRADO';
-                this.classList.remove('btn-primary');
-                this.classList.add('btn-secondary');
-                this.disabled = true;
+                let inventario = JSON.parse(localStorage.getItem('inventarioGlobal'));
+                inventario[idLibro] -= 1;
+                localStorage.setItem('inventarioGlobal', JSON.stringify(inventario));
 
-                const statusBadge = card.querySelector('.status');
-                statusBadge.textContent = "Prestado (En tu cuenta)";
-                statusBadge.classList.remove('available');
-                statusBadge.classList.add('unavailable');
-
-                Swal.fire({
-                    title: '¡Registrado!',
-                    text: 'El libro está en tu cuenta. Pasa por la biblioteca a recogerlo.',
-                    icon: 'success',
-                    background: '#15224a',
-                    color: '#e0e6ed',
-                    confirmButtonColor: '#610094'
-                });
+                actualizarInterfazCatalogo();
+                Swal.fire({ title: '¡Registrado!', icon: 'success', background: '#15224a', color: '#e0e6ed', confirmButtonColor: '#610094' });
             }
         });
-    });
+    }
 });
 
-// --- 5. RENDERIZAR "MIS PRÉSTAMOS" ---
+// --- 6. RENDERIZAR "MIS PRÉSTAMOS" (ESTUDIANTE) ---
 function cargarMisPrestamos() {
     let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
-    gridPrestamosGuardados.innerHTML = "";
+    const grid = document.getElementById('grid-prestamos-guardados');
+    grid.innerHTML = "";
+    
+    // Filtrar solo los del usuario actual (Simulación)
+    const usuario = localStorage.getItem('usuarioActual');
+    let misLibros = prestamos.filter(l => l.estudiante === usuario);
 
-    if (prestamos.length === 0) {
-        mensajeVacio.classList.remove('hidden');
+    if (misLibros.length === 0) {
+        document.getElementById('mensaje-vacio').classList.remove('hidden');
     } else {
-        mensajeVacio.classList.add('hidden');
-        
-        prestamos.forEach(libro => {
-            const html = `
-                <div class="book-card">
-                    <div class="book-image-container">
-                        <img src="${libro.imagen}" alt="Portada" class="book-cover-img">
-                    </div>
+        document.getElementById('mensaje-vacio').classList.add('hidden');
+        misLibros.forEach(libro => {
+            grid.innerHTML += `
+                <div class="book-card" data-id="${libro.id}">
+                    <div class="book-image-container"><img src="${libro.imagen}" class="book-cover-img"></div>
                     <h3>${libro.titulo}</h3>
-                    <p class="author">${libro.autor}</p>
-                    
                     <div class="fecha-destacada">
-                        <p style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Devolución programada:</p>
-                        <p><strong><i class="fa-regular fa-calendar-check"></i> ${formatFriendlyDate(libro.fechaDevolucion)}</strong></p>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Devolución:</p>
+                        <p><strong>${formatFriendlyDate(libro.fechaDevolucion)}</strong></p>
                     </div>
-
-                    <button class="btn btn-edit-time" onclick="editarTiempo('${libro.id}')">
-                        <i class="fa-solid fa-pen-to-square"></i> Devolver más rápido
-                    </button>
                 </div>
             `;
-            gridPrestamosGuardados.innerHTML += html;
         });
     }
 }
 
-// --- 6. EDITAR TIEMPO (Acortar fecha) ---
-// Usamos window. para que sea accesible desde el onclick del HTML inyectado
-window.editarTiempo = function(idLibro) {
+// --- 7. PANEL BIBLIOTECARIO (ADMIN) ---
+function cargarPanelBibliotecario() {
     let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
-    let index = prestamos.findIndex(l => l.id === idLibro);
-    
-    if (index === -1) return;
-    let libro = prestamos[index];
+    const tbody = document.getElementById('tabla-prestamos-admin');
+    tbody.innerHTML = "";
 
-    const now = new Date();
-    const minDate = new Date(now.getTime() + 2 * 60 * 60 * 1000); // 2 horas mínimo
-    const maxDate = new Date(libro.fechaDevolucion); // Límite máximo: la fecha que ya tenía
-
-    // Si el tiempo mínimo (ahora + 2h) ya supera su fecha de entrega actual, no puede acortar más
-    if (minDate >= maxDate) {
-        Swal.fire({
-            title: 'No es posible editar',
-            text: 'Faltan menos de 2 horas para tu fecha límite actual. Ya no puedes acortar más el plazo de entrega.',
-            icon: 'warning',
-            background: '#15224a',
-            color: '#e0e6ed',
-            confirmButtonColor: '#610094'
+    if (prestamos.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No hay préstamos activos</td></tr>";
+    } else {
+        prestamos.forEach((p, index) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${p.id}</td>
+                    <td>${p.titulo}</td>
+                    <td>${p.estudiante}</td>
+                    <td>${formatFriendlyDate(p.fechaDevolucion)}</td>
+                    <td><button class="btn-success" onclick="procesarDevolucion(${index}, '${p.id}')"><i class="fa-solid fa-check-double"></i> Recibir</button></td>
+                </tr>
+            `;
         });
-        return;
     }
+}
 
-    const minStr = formatToLocalISO(minDate);
-    const maxStr = formatToLocalISO(maxDate);
-
+window.procesarDevolucion = function(indexPrestamo, idLibro) {
     Swal.fire({
-        title: 'Adelantar Devolución',
-        html: `
-            <p style="font-size: 0.9rem; margin-bottom: 15px;">Solo puedes elegir una fecha anterior a la programada actualmente.</p>
-            <input type="datetime-local" id="nueva-fecha" class="swal2-input" style="width: 85%;" min="${minStr}" max="${maxStr}">
-        `,
-        background: '#15224a',
-        color: '#e0e6ed',
-        showCancelButton: true,
-        confirmButtonColor: '#610094',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Actualizar',
-        cancelButtonText: 'Cancelar',
-        preConfirm: () => {
-            const nuevaF = document.getElementById('nueva-fecha').value;
-            if (!nuevaF) {
-                Swal.showValidationMessage('Selecciona una nueva fecha');
-                return false;
-            }
-            const selected = new Date(nuevaF);
-            if (selected < minDate) {
-                Swal.showValidationMessage('El mínimo sigue siendo 2 horas.');
-                return false;
-            }
-            if (selected > maxDate) {
-                Swal.showValidationMessage('No puedes extender el tiempo, solo adelantarlo.');
-                return false;
-            }
-            return nuevaF;
-        }
+        title: '¿Confirmar Devolución Física?',
+        text: "El inventario aumentará y el préstamo se cerrará.",
+        icon: 'warning',
+        background: '#15224a', color: '#e0e6ed',
+        showCancelButton: true, confirmButtonColor: '#4CAF50', cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, recibir libro'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Actualizar el array y guardar
-            prestamos[index].fechaDevolucion = result.value;
+            let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
+            prestamos.splice(indexPrestamo, 1);
             localStorage.setItem('librosBiblioteca', JSON.stringify(prestamos));
-            
-            // Recargar la vista
-            cargarMisPrestamos();
-            
-            Swal.fire({
-                title: '¡Actualizado!',
-                text: 'Has adelantado tu fecha de devolución.',
-                icon: 'success',
-                background: '#15224a',
-                color: '#e0e6ed',
-                confirmButtonColor: '#610094'
-            });
+
+            let inventario = JSON.parse(localStorage.getItem('inventarioGlobal'));
+            inventario[idLibro] += 1;
+            localStorage.setItem('inventarioGlobal', JSON.stringify(inventario));
+
+            cargarPanelBibliotecario();
+            Swal.fire({title:'Completado', text:'Libro devuelto al estante.', icon:'success', background: '#15224a', color: '#e0e6ed'});
         }
     });
 };
+
+// Agregar nuevo libro (Bibliotecario)
+document.getElementById('btn-agregar-libro-modal').addEventListener('click', function() {
+    Swal.fire({
+        title: 'Registrar Nuevo Libro',
+        html: `
+            <input id="n-titulo" class="swal2-input" placeholder="Título del libro">
+            <input id="n-autor" class="swal2-input" placeholder="Autor">
+            <input id="n-isbn" class="swal2-input" placeholder="ISBN">
+            <input id="n-stock" type="number" class="swal2-input" placeholder="Cantidad Ejemplares" min="1">
+        `,
+        background: '#15224a', color: '#e0e6ed', showCancelButton: true, confirmButtonColor: '#4CAF50',
+        preConfirm: () => {
+            return {
+                titulo: document.getElementById('n-titulo').value,
+                autor: document.getElementById('n-autor').value,
+                isbn: document.getElementById('n-isbn').value,
+                stock: parseInt(document.getElementById('n-stock').value)
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed && result.value.titulo) {
+            let nuevosLibros = JSON.parse(localStorage.getItem('librosNuevos')) || [];
+            let inventario = JSON.parse(localStorage.getItem('inventarioGlobal'));
+            
+            // Generar ID único
+            const nuevoId = 'nuevo-' + Date.now();
+            
+            const nuevoLibroObj = {
+                id: nuevoId,
+                titulo: result.value.titulo,
+                autor: result.value.autor,
+                isbn: result.value.isbn,
+                ubicacion: 'Estante D Nuevo',
+                imagen: 'https://via.placeholder.com/150x200/08122c/e0e6ed?text=Nueva+Portada', // Placeholder
+                stock: result.value.stock,
+                stockMax: result.value.stock
+            };
+
+            nuevosLibros.push(nuevoLibroObj);
+            localStorage.setItem('librosNuevos', JSON.stringify(nuevosLibros));
+            
+            inventario[nuevoId] = result.value.stock;
+            localStorage.setItem('inventarioGlobal', JSON.stringify(inventario));
+            
+            Swal.fire({title:'Libro Agregado', icon:'success', background: '#15224a', color: '#e0e6ed'});
+            
+            // Inyectar inmediatamente para que esté listo cuando entre un estudiante
+            inyectarLibrosNuevos();
+        }
+    });
+});

@@ -4,14 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biblioteca Rafael Parga Cortés</title>
-    
-    <!-- Hoja de estilos -->
     <link rel="stylesheet" href="style.css">
-
-    <!-- Librería de Íconos: FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- LIBRERÍA DE ALERTAS: SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
@@ -26,11 +20,18 @@
         <!-- SECCIÓN DE LOGIN -->
         <section id="login-section" class="ui-section">
             <div class="login-container">
-                <h2 style="margin-bottom: 1.5rem; text-align: center;"><i class="fa-solid fa-user-graduate"></i> Acceso de Estudiantes</h2>
+                <h2 style="margin-bottom: 1.5rem; text-align: center;"><i class="fa-solid fa-users"></i> Acceso al Sistema</h2>
                 <form id="login-form">
                     <div class="form-group">
-                        <label for="codigo">Código Estudiantil</label>
-                        <input type="text" id="codigo" placeholder="Ingrese su código" required>
+                        <label for="rol">Tipo de Usuario</label>
+                        <select id="rol" class="swal2-select" style="width: 100%; padding: 0.8rem; background-color: var(--bg-black); color: var(--text-light); border: 1px solid var(--accent-purple); border-radius: 4px; margin-bottom: 1rem;">
+                            <option value="estudiante">Estudiante</option>
+                            <option value="bibliotecario">Bibliotecario / Personal</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="codigo">Código / Usuario</label>
+                        <input type="text" id="codigo" placeholder="Ingrese su credencial" required>
                     </div>
                     <div class="form-group">
                         <label for="password">Contraseña</label>
@@ -38,34 +39,29 @@
                     </div>
                     <button type="submit" class="btn btn-primary">Ingresar al Sistema</button>
                 </form>
-                <p id="login-message"></p>
             </div>
         </section>
 
-        <!-- SECCIÓN DEL CATÁLOGO -->
+        <!-- SECCIÓN DEL CATÁLOGO (ESTUDIANTES) -->
         <section id="catalog-section" class="hidden">
             <div class="catalog-header">
                 <h2 class="section-title">Catálogo de Libros</h2>
                 <div class="header-buttons">
                     <button id="btn-mis-prestamos" class="btn btn-primary"><i class="fa-solid fa-book-open-reader"></i> Mis Préstamos</button>
-                    <button id="btn-logout" class="btn btn-secondary"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</button>
+                    <button class="btn btn-secondary btn-logout-general"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</button>
                 </div>
             </div>
             
-            <!-- APERTURA DE LA CUADRÍCULA (GRID) PARA TODOS LOS LIBROS -->
-            <div class="book-grid">
-                
+            <div class="book-grid" id="main-catalog-grid">
                 <!-- Libro 1 -->
                 <div class="book-card" data-id="1">
-                    <div class="book-image-container">
-                        <img src="fundamentos.jpg" alt="Portada Fundamentos de Programación" class="book-cover-img">
-                    </div>
+                    <div class="book-image-container"><img src="fundamentos.jpg" alt="Portada Fundamentos de Programación" class="book-cover-img"></div>
                     <h3>Fundamentos de Programación: Algoritmos y Estructura de Datos</h3>
                     <p class="author">Luis Joyanes Aguilar</p>
                     <div class="book-details">
                         <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-8448136649</p>
-                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> Segunda Edición</p>
                         <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante A3, Ingeniería</p>
+                        <p class="inventario-info"><strong><i class="fa-solid fa-boxes-stacked"></i> Ejemplares:</strong> <span class="stock-count">5</span>/5</p>
                     </div>
                     <span class="status available">Disponible</span>
                     <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
@@ -73,15 +69,13 @@
 
                 <!-- Libro 2 -->
                 <div class="book-card" data-id="2">
-                    <div class="book-image-container">
-                        <img src="patrones.jpg" alt="Portada Design Patterns" class="book-cover-img">
-                    </div>
+                    <div class="book-image-container"><img src="patrones.jpg" alt="Portada Design Patterns" class="book-cover-img"></div>
                     <h3>Design Patterns: Elements of Reusable Object-Oriented Software</h3>
                     <p class="author">Gamma, Helm, Johnson, Vlissides</p>
                     <div class="book-details">
                         <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-0201633610</p>
-                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> 1ra Edición</p>
                         <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante B1, Software</p>
+                        <p class="inventario-info"><strong><i class="fa-solid fa-boxes-stacked"></i> Ejemplares:</strong> <span class="stock-count">5</span>/5</p>
                     </div>
                     <span class="status available">Disponible</span>
                     <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
@@ -89,92 +83,108 @@
 
                 <!-- Libro 3 -->
                 <div class="book-card" data-id="3">
-                    <div class="book-image-container">
-                        <img src="ingenieria.jpg" alt="Ingeniería de Software" class="book-cover-img">
-                    </div>
+                    <div class="book-image-container"><img src="ingenieria.jpg" alt="Ingeniería de Software" class="book-cover-img"></div>
                     <h3>Ingeniería de Software: Un Enfoque Práctico</h3>
-                    <p class="author">Roger S. Pressman, Bruce R. Maxim</p>
+                    <p class="author">Roger S. Pressman</p>
                     <div class="book-details">
                         <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-1456287714</p>
-                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> Novena Edición</p>
                         <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante B2, Software</p>
+                        <p class="inventario-info inventario-agotado"><strong><i class="fa-solid fa-boxes-stacked"></i> Ejemplares:</strong> <span class="stock-count">0</span>/5</p>
                     </div>
                     <span class="status unavailable">Prestado</span>
                     <button class="btn btn-secondary" disabled><i class="fa-solid fa-ban"></i> No Disponible</button>
                 </div>
 
-                <!-- Libro 4: La Odisea -->
+                <!-- Libro 4 -->
                 <div class="book-card" data-id="4">
-                    <div class="book-image-container">
-                        <img src="la_odisea_homero.jpg" alt="Portada La Odisea" class="book-cover-img">
-                    </div>
+                    <div class="book-image-container"><img src="la_odisea_homero.jpg" alt="Portada La Odisea" class="book-cover-img"></div>
                     <h3>La Odisea</h3>
                     <p class="author">Homero</p>
                     <div class="book-details">
                         <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-8423342516</p>
-                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> Montaner y Simón</p>
                         <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante C1, Literatura</p>
+                        <p class="inventario-info"><strong><i class="fa-solid fa-boxes-stacked"></i> Ejemplares:</strong> <span class="stock-count">5</span>/5</p>
                     </div>
                     <span class="status available">Disponible</span>
                     <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
                 </div>
 
-                <!-- Libro 5: Cien Años de Soledad -->
+                <!-- Libro 5 -->
                 <div class="book-card" data-id="5">
-                    <div class="book-image-container">
-                        <img src="cien_años_de_soledad.jpg" alt="Portada Cien Años de Soledad" class="book-cover-img">
-                    </div>
+                    <div class="book-image-container"><img src="cien_años_de_soledad.jpg" alt="Portada Cien Años" class="book-cover-img"></div>
                     <h3>Cien Años de Soledad</h3>
                     <p class="author">Gabriel García Márquez</p>
                     <div class="book-details">
                         <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-0307474728</p>
-                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> Conmemorativa RAE</p>
                         <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante C2, Literatura</p>
+                        <p class="inventario-info"><strong><i class="fa-solid fa-boxes-stacked"></i> Ejemplares:</strong> <span class="stock-count">5</span>/5</p>
                     </div>
                     <span class="status available">Disponible</span>
                     <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
                 </div>
 
-                <!-- Libro 6: El Principito -->
+                <!-- Libro 6 -->
                 <div class="book-card" data-id="6">
-                    <div class="book-image-container">
-                        <img src="el-principito-edicion-original.jpg" alt="Portada El Principito" class="book-cover-img">
-                    </div>
+                    <div class="book-image-container"><img src="el-principito-edicion-original.jpg" alt="Portada Principito" class="book-cover-img"></div>
                     <h3>El Principito</h3>
                     <p class="author">Antoine de Saint-Exupéry</p>
                     <div class="book-details">
                         <p><strong><i class="fa-solid fa-barcode"></i> ISBN:</strong> 978-8498381498</p>
-                        <p><strong><i class="fa-solid fa-layer-group"></i> Edición:</strong> Salamandra</p>
                         <p><strong><i class="fa-solid fa-location-dot"></i> Ubicación:</strong> Estante C3, Literatura</p>
+                        <p class="inventario-info"><strong><i class="fa-solid fa-boxes-stacked"></i> Ejemplares:</strong> <span class="stock-count">5</span>/5</p>
                     </div>
                     <span class="status available">Disponible</span>
                     <button class="btn btn-primary btn-prestamo"><i class="fa-solid fa-book-bookmark"></i> Solicitar Préstamo</button>
                 </div>
-
-            </div> <!-- CIERRE CORRECTO DE LA CUADRÍCULA (GRID) -->
-
+                <!-- Los libros nuevos agregados por el bibliotecario aparecerán aquí -->
+            </div>
         </section>
 
-        <!-- NUEVA SECCIÓN: MIS PRÉSTAMOS -->
+        <!-- SECCIÓN: MIS PRÉSTAMOS (ESTUDIANTES) -->
         <section id="mis-prestamos-section" class="hidden">
             <div class="catalog-header">
                 <h2 class="section-title">Mis Libros Prestados</h2>
                 <button id="btn-volver-catalogo" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Volver al Catálogo</button>
             </div>
-            
-            <div class="book-grid" id="grid-prestamos-guardados">
-                <!-- Aquí se inyectarán los libros guardados mediante JavaScript -->
-            </div>
-            
+            <div class="book-grid" id="grid-prestamos-guardados"></div>
             <div id="mensaje-vacio" class="hidden" style="text-align: center; padding: 3rem; color: var(--text-muted);">
                 <i class="fa-solid fa-book-open fa-3x" style="margin-bottom: 1rem;"></i>
                 <h3>No tienes libros prestados actualmente.</h3>
-                <p>Ve al catálogo para solicitar material de estudio.</p>
+            </div>
+        </section>
+
+        <!-- NUEVA SECCIÓN: PANEL BIBLIOTECARIO -->
+        <section id="librarian-section" class="hidden">
+            <div class="catalog-header">
+                <h2 class="section-title" style="border-left-color: #4CAF50;">Panel Administrativo - Bibliotecario</h2>
+                <div class="header-buttons">
+                    <button id="btn-agregar-libro-modal" class="btn btn-primary" style="background: #4CAF50;"><i class="fa-solid fa-plus"></i> Ingresar Nuevo Libro</button>
+                    <button class="btn btn-secondary btn-logout-general"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</button>
+                </div>
+            </div>
+            
+            <div style="background-color: var(--secondary-blue); border-radius: 8px; padding: 2rem;">
+                <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-list-check"></i> Préstamos Activos (Pendientes de Devolución Física)</h3>
+                <div style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID Libro</th>
+                                <th>Título</th>
+                                <th>Estudiante</th>
+                                <th>Fecha Límite</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-prestamos-admin">
+                            <!-- Inyectado por JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
     </main>
-
     <script src="script.js"></script>
 </body>
 </html>

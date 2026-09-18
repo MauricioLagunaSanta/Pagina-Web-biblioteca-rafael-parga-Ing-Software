@@ -363,3 +363,56 @@ button:disabled {
     background-color: #4CAF50;
     color: white;
 }
+
+/* --- RESPONSIVIDAD PARA DISPOSITIVOS MÓVILES --- */
+@media screen and (max-width: 768px) {
+    /* Ajuste de los márgenes principales */
+    .container {
+        padding: 0 1rem;
+    }
+
+    /* 1. Reorganización de los encabezados (Títulos y Botones) */
+    .catalog-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .header-buttons {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .header-buttons .btn {
+        width: 100%; /* Los botones ocuparán todo el ancho de la pantalla */
+        margin: 0;
+        text-align: center;
+        justify-content: center;
+    }
+
+    /* 2. Ajuste del formulario de Login */
+    .login-container {
+        padding: 2rem 1.5rem;
+    }
+
+    /* 3. Ajuste de la Tabla del Bibliotecario */
+    .admin-table {
+        min-width: 600px; /* Obliga a la tabla a mantener un ancho mínimo */
+    }
+    
+    .admin-table th, .admin-table td {
+        font-size: 0.85rem;
+        padding: 8px 10px;
+        white-space: normal;
+    }
+
+    /* Opcional: Reducir ligeramente el tamaño de la fuente de los títulos largos en las tarjetas */
+    .book-card h3 {
+        font-size: 1rem;
+        height: auto;
+        min-height: 40px;
+    }
+}

@@ -18,7 +18,6 @@ function inicializarSistema() {
     if (!localStorage.getItem('inventarioGlobal')) {
         localStorage.setItem('inventarioGlobal', JSON.stringify(inventarioInicial));
     }
-    // Inyectar libros creados por el bibliotecario al DOM antes de actualizar interfaz
     inyectarLibrosNuevos();
     actualizarInterfazCatalogo();
 }
@@ -28,7 +27,6 @@ function inyectarLibrosNuevos() {
     const grid = document.getElementById('main-catalog-grid');
     
     nuevosLibros.forEach(libro => {
-        // Evitar duplicados si ya está en el HTML
         if(!document.querySelector(`.book-card[data-id="${libro.id}"]`)) {
             grid.innerHTML += `
                 <div class="book-card" data-id="${libro.id}">
@@ -50,7 +48,11 @@ function inyectarLibrosNuevos() {
 
 function actualizarInterfazCatalogo() {
     let inventario = JSON.parse(localStorage.getItem('inventarioGlobal'));
-    let misPrestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
+    let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
+    const usuarioActual = localStorage.getItem('usuarioActual');
+    
+    // Filtrar solo los préstamos del usuario actual
+    let misPrestamos = prestamos.filter(l => l.estudiante === usuarioActual);
 
     document.querySelectorAll('.book-card').forEach(card => {
         const id = card.getAttribute('data-id');
@@ -116,20 +118,25 @@ btnsLogout.forEach(btn => {
         librarianSection.classList.add('hidden');
         loginSection.classList.remove('hidden');
         loginForm.reset();
+        localStorage.removeItem('usuarioActual');
     });
 });
 
-btnMisPrestamos.addEventListener('click', function() {
-    catalogSection.classList.add('hidden');
-    misPrestamosSection.classList.remove('hidden');
-    cargarMisPrestamos();
-});
+if (btnMisPrestamos) {
+    btnMisPrestamos.addEventListener('click', function() {
+        catalogSection.classList.add('hidden');
+        misPrestamosSection.classList.remove('hidden');
+        cargarMisPrestamos();
+    });
+}
 
-btnVolverCatalogo.addEventListener('click', function() {
-    misPrestamosSection.classList.add('hidden');
-    catalogSection.classList.remove('hidden');
-    actualizarInterfazCatalogo();
-});
+if (btnVolverCatalogo) {
+    btnVolverCatalogo.addEventListener('click', function() {
+        misPrestamosSection.classList.add('hidden');
+        catalogSection.classList.remove('hidden');
+        actualizarInterfazCatalogo();
+    });
+}
 
 // --- 4. FUNCIONES DE FECHA ---
 function formatToLocalISO(date) {
@@ -166,20 +173,21 @@ function obtenerSiguienteHorarioHabil(fechaBase) {
 // --- 5. SOLICITAR PRÉSTAMO (ESTUDIANTE) ---
 document.querySelector('#main-catalog-grid').addEventListener('click', function(e) {
     const boton = e.target.closest('.btn-prestamo');
+    
     if (boton && !boton.disabled) {
         const card = boton.closest('.book-card');
+        
+        const idLibro = card.getAttribute('data-id') || Date.now().toString(); 
         const titulo = card.querySelector('h3').textContent;
+        const imgElement = card.querySelector('img');
+        const imagen = imgElement ? imgElement.src : '';
+        const authorElement = card.querySelector('p'); 
+        const autor = authorElement ? authorElement.textContent : 'Autor Desconocido';
+        const usuario = localStorage.getItem('usuarioActual') || 'Estudiante';
 
         const now = new Date();
-        // Usamos la función que tienes en la línea 150
         let minDate = obtenerSiguienteHorarioHabil(new Date(now.getTime() + 2 * 60 * 60 * 1000)); 
         const maxDate = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000); 
-
-        // Función rápida para que el input del calendario lea bien la fecha
-        const formatToLocalISO = (date) => {
-            const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-            return (new Date(date - tzOffset)).toISOString().slice(0, 16);
-        };
 
         Swal.fire({
             title: 'Configurar Préstamo',
@@ -195,45 +203,48 @@ document.querySelector('#main-catalog-grid').addEventListener('click', function(
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                // 1. ANIMACIÓN DE CARGA
                 Swal.fire({
                     title: 'Validando inventario...',
                     html: 'Conectando con la base de datos de la biblioteca.',
                     timer: 1500,
                     timerProgressBar: true,
-                    background: '#15224a',
-                    color: '#e0e6ed',
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+                    background: '#15224a', color: '#e0e6ed',
+                    didOpen: () => { Swal.showLoading(); }
                 }).then(() => {
-                    // AQUÍ ESTABA EL ERROR: Cambiamos las funciones fantasmas por la actualización visual directa
-                    boton.textContent = "Préstamo Registrado";
-                    boton.classList.remove('btn-primary');
-                    boton.classList.add('btn-secondary');
-                    boton.disabled = true;
+                    let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
                     
-                    const statusBadge = boton.previousElementSibling;
-                    if(statusBadge) {
-                        statusBadge.textContent = "Prestado (En tu cuenta)";
-                        statusBadge.classList.remove('available');
-                        statusBadge.classList.add('unavailable');
+                    const yaExiste = prestamos.find(l => l.titulo === titulo && l.estudiante === usuario);
+                    if (!yaExiste) {
+                        prestamos.push({
+                            id: idLibro,
+                            titulo: titulo,
+                            imagen: imagen,
+                            autor: autor,
+                            fechaDevolucion: result.value,
+                            estudiante: usuario 
+                        });
+                        localStorage.setItem('librosBiblioteca', JSON.stringify(prestamos));
+                        
+                        let inventario = JSON.parse(localStorage.getItem('inventarioGlobal'));
+                        if(inventario[idLibro] > 0) {
+                            inventario[idLibro] -= 1;
+                            localStorage.setItem('inventarioGlobal', JSON.stringify(inventario));
+                        }
                     }
 
-                    // 2. FORMATEAR LA FECHA PARA QUE SE VEA BONITA
+                    actualizarInterfazCatalogo();
+
                     const fechaElegida = new Date(result.value);
                     const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
                     let fechaFormateada = fechaElegida.toLocaleDateString('es-ES', opcionesFecha);
                     fechaFormateada = fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
 
-                    // 3. VENTANA DE ALERTA FINAL CON ÉXITO
                     Swal.fire({ 
                         title: '¡Confirmado con ÉXITO!', 
                         icon: 'success', 
                         html: `
                             <div style="text-align: center; margin-top: 10px;">
                                 <p style="font-size: 1.05rem; margin-bottom: 15px;">Tu préstamo ha sido registrado en el sistema.</p>
-                                
                                 <div style="background: rgba(97, 0, 148, 0.2); padding: 15px; border-radius: 8px; border: 1px solid #610094; margin-bottom: 15px;">
                                     <i class="fa-solid fa-calendar-check" style="color: #4CAF50; font-size: 2rem; margin-bottom: 10px;"></i>
                                     <p style="margin: 0; font-size: 0.95rem; color: #b3c2d6;">
@@ -241,17 +252,12 @@ document.querySelector('#main-catalog-grid').addEventListener('click', function(
                                         <b style="color: #e0e6ed; font-size: 1.1rem; display: block; margin-top: 8px;">${fechaFormateada}</b>
                                     </p>
                                 </div>
-                                
                                 <p style="margin: 0; font-size: 0.85rem; color: #8b9bb4;">
                                     * Recuerda pasar a recogerlo pronto dentro del horario hábil.
                                 </p>
                             </div>
                         `,
-                        background: '#15224a', 
-                        color: '#e0e6ed', 
-                        confirmButtonColor: '#4CAF50',
-                        confirmButtonText: 'OK',
-                        allowOutsideClick: false 
+                        background: '#15224a', color: '#e0e6ed', confirmButtonColor: '#4CAF50', confirmButtonText: 'OK', allowOutsideClick: false 
                     });
                 });
             }
@@ -261,29 +267,40 @@ document.querySelector('#main-catalog-grid').addEventListener('click', function(
 
 // --- 6. RENDERIZAR "MIS PRÉSTAMOS" (ESTUDIANTE) ---
 function cargarMisPrestamos() {
-    let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
-    const grid = document.getElementById('grid-prestamos-guardados');
-    grid.innerHTML = "";
+    const gridPrestamosGuardados = document.getElementById('grid-prestamos-guardados');
+    const mensajeVacio = document.getElementById('mensaje-vacio');
     
-    // Filtrar solo los del usuario actual (Simulación)
-    const usuario = localStorage.getItem('usuarioActual');
-    let misLibros = prestamos.filter(l => l.estudiante === usuario);
+    let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
+    const usuarioActual = localStorage.getItem('usuarioActual');
+    let misLibros = prestamos.filter(l => l.estudiante === usuarioActual);
+    
+    if (gridPrestamosGuardados) gridPrestamosGuardados.innerHTML = ""; 
 
     if (misLibros.length === 0) {
-        document.getElementById('mensaje-vacio').classList.remove('hidden');
+        if (mensajeVacio) mensajeVacio.classList.remove('hidden');
     } else {
-        document.getElementById('mensaje-vacio').classList.add('hidden');
+        if (mensajeVacio) mensajeVacio.classList.add('hidden');
+        
         misLibros.forEach(libro => {
-            grid.innerHTML += `
-                <div class="book-card" data-id="${libro.id}">
-                    <div class="book-image-container"><img src="${libro.imagen}" class="book-cover-img"></div>
+            const fechaOpciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            let fechaFormateada = new Date(libro.fechaDevolucion).toLocaleDateString('es-ES', fechaOpciones);
+            fechaFormateada = fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
+
+            const html = `
+                <div class="book-card" style="border: 1px solid #610094;">
+                    <div class="book-image-container" style="text-align: center; margin-bottom: 15px;">
+                        <img src="${libro.imagen}" alt="Portada" style="max-height: 180px; border-radius: 4px;">
+                    </div>
                     <h3>${libro.titulo}</h3>
-                    <div class="fecha-destacada">
-                        <p style="color: var(--text-muted); font-size: 0.85rem;">Devolución:</p>
-                        <p><strong>${formatFriendlyDate(libro.fechaDevolucion)}</strong></p>
+                    <p class="author" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">${libro.autor}</p>
+                    
+                    <div style="background: rgba(97, 0, 148, 0.2); padding: 10px; border-radius: 8px;">
+                        <p style="color: #b3c2d6; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px;">Devolución programada:</p>
+                        <p style="color: #e0e6ed; font-size: 0.95rem;"><strong><i class="fa-regular fa-calendar-check" style="color: #4CAF50;"></i> ${fechaFormateada}</strong></p>
                     </div>
                 </div>
             `;
+            if (gridPrestamosGuardados) gridPrestamosGuardados.innerHTML += html;
         });
     }
 }
@@ -292,6 +309,8 @@ function cargarMisPrestamos() {
 function cargarPanelBibliotecario() {
     let prestamos = JSON.parse(localStorage.getItem('librosBiblioteca')) || [];
     const tbody = document.getElementById('tabla-prestamos-admin');
+    if(!tbody) return;
+    
     tbody.innerHTML = "";
 
     if (prestamos.length === 0) {
@@ -315,8 +334,7 @@ window.procesarDevolucion = function(indexPrestamo, idLibro) {
     Swal.fire({
         title: '¿Confirmar Devolución Física?',
         text: "El inventario aumentará y el préstamo se cerrará.",
-        icon: 'warning',
-        background: '#15224a', color: '#e0e6ed',
+        icon: 'warning', background: '#15224a', color: '#e0e6ed',
         showCancelButton: true, confirmButtonColor: '#4CAF50', cancelButtonColor: '#d33',
         confirmButtonText: 'Sí, recibir libro'
     }).then((result) => {
@@ -326,8 +344,10 @@ window.procesarDevolucion = function(indexPrestamo, idLibro) {
             localStorage.setItem('librosBiblioteca', JSON.stringify(prestamos));
 
             let inventario = JSON.parse(localStorage.getItem('inventarioGlobal'));
-            inventario[idLibro] += 1;
-            localStorage.setItem('inventarioGlobal', JSON.stringify(inventario));
+            if(inventario[idLibro] !== undefined) {
+                inventario[idLibro] += 1;
+                localStorage.setItem('inventarioGlobal', JSON.stringify(inventario));
+            }
 
             cargarPanelBibliotecario();
             Swal.fire({title:'Completado', text:'Libro devuelto al estante.', icon:'success', background: '#15224a', color: '#e0e6ed'});
@@ -335,75 +355,67 @@ window.procesarDevolucion = function(indexPrestamo, idLibro) {
     });
 };
 
-// Agregar nuevo libro (Bibliotecario)
-document.getElementById('btn-agregar-libro-modal').addEventListener('click', function() {
-    Swal.fire({
-        title: 'Registrar Nuevo Libro',
-        html: `
-            <input id="n-titulo" class="swal2-input" placeholder="Título del libro">
-            <input id="n-autor" class="swal2-input" placeholder="Autor">
-            <input id="n-isbn" class="swal2-input" placeholder="ISBN">
-            <input id="n-stock" type="number" class="swal2-input" placeholder="Cantidad Ejemplares" min="1">
-        `,
-        background: '#15224a', color: '#e0e6ed', showCancelButton: true, confirmButtonColor: '#4CAF50',
-        preConfirm: () => {
-            return {
-                titulo: document.getElementById('n-titulo').value,
-                autor: document.getElementById('n-autor').value,
-                isbn: document.getElementById('n-isbn').value,
-                stock: parseInt(document.getElementById('n-stock').value)
+const btnAgregarLibro = document.getElementById('btn-agregar-libro-modal');
+if (btnAgregarLibro) {
+    btnAgregarLibro.addEventListener('click', function() {
+        Swal.fire({
+            title: 'Registrar Nuevo Libro',
+            html: `
+                <input id="n-titulo" class="swal2-input" placeholder="Título del libro">
+                <input id="n-autor" class="swal2-input" placeholder="Autor">
+                <input id="n-isbn" class="swal2-input" placeholder="ISBN">
+                <input id="n-stock" type="number" class="swal2-input" placeholder="Cantidad Ejemplares" min="1">
+            `,
+            background: '#15224a', color: '#e0e6ed', showCancelButton: true, confirmButtonColor: '#4CAF50',
+            preConfirm: () => {
+                return {
+                    titulo: document.getElementById('n-titulo').value,
+                    autor: document.getElementById('n-autor').value,
+                    isbn: document.getElementById('n-isbn').value,
+                    stock: parseInt(document.getElementById('n-stock').value)
+                }
             }
-        }
-    }).then((result) => {
-        if (result.isConfirmed && result.value.titulo) {
-            let nuevosLibros = JSON.parse(localStorage.getItem('librosNuevos')) || [];
-            let inventario = JSON.parse(localStorage.getItem('inventarioGlobal'));
-            
-            // Generar ID único
-            const nuevoId = 'nuevo-' + Date.now();
-            
-            const nuevoLibroObj = {
-                id: nuevoId,
-                titulo: result.value.titulo,
-                autor: result.value.autor,
-                isbn: result.value.isbn,
-                ubicacion: 'Estante D Nuevo',
-                imagen: 'https://via.placeholder.com/150x200/08122c/e0e6ed?text=Nueva+Portada', // Placeholder
-                stock: result.value.stock,
-                stockMax: result.value.stock
-            };
+        }).then((result) => {
+            if (result.isConfirmed && result.value.titulo) {
+                let nuevosLibros = JSON.parse(localStorage.getItem('librosNuevos')) || [];
+                let inventario = JSON.parse(localStorage.getItem('inventarioGlobal'));
+                
+                const nuevoId = 'nuevo-' + Date.now();
+                const nuevoLibroObj = {
+                    id: nuevoId,
+                    titulo: result.value.titulo,
+                    autor: result.value.autor,
+                    isbn: result.value.isbn,
+                    ubicacion: 'Estante D Nuevo',
+                    imagen: 'https://via.placeholder.com/150x200/08122c/e0e6ed?text=Nueva+Portada', 
+                    stock: result.value.stock,
+                    stockMax: result.value.stock
+                };
 
-            nuevosLibros.push(nuevoLibroObj);
-            localStorage.setItem('librosNuevos', JSON.stringify(nuevosLibros));
-            
-            inventario[nuevoId] = result.value.stock;
-            localStorage.setItem('inventarioGlobal', JSON.stringify(inventario));
-            
-            Swal.fire({title:'Libro Agregado', icon:'success', background: '#15224a', color: '#e0e6ed'});
-            
-            // Inyectar inmediatamente para que esté listo cuando entre un estudiante
-            inyectarLibrosNuevos();
-        }
+                nuevosLibros.push(nuevoLibroObj);
+                localStorage.setItem('librosNuevos', JSON.stringify(nuevosLibros));
+                
+                inventario[nuevoId] = result.value.stock;
+                localStorage.setItem('inventarioGlobal', JSON.stringify(inventario));
+                
+                Swal.fire({title:'Libro Agregado', icon:'success', background: '#15224a', color: '#e0e6ed'});
+                inyectarLibrosNuevos();
+            }
+        });
     });
-});
+}
 
 // --- 8. ANIMACIÓN SMART HEADER (SOLO SCROLL) ---
 const header = document.querySelector('header');
 let ultimoScrollY = window.scrollY;
 
 window.addEventListener('scroll', () => {
-    // Si el usuario está en la parte más alta de la página, el encabezado siempre se muestra
     if (window.scrollY <= 50) {
         header.classList.remove('header-oculto');
-    } 
-    // Si el usuario desliza hacia abajo, el encabezado se oculta
-    else if (window.scrollY > ultimoScrollY) {
+    } else if (window.scrollY > ultimoScrollY) {
         header.classList.add('header-oculto');
-    } 
-    // Si el usuario desliza hacia arriba, el encabezado reaparece
-    else {
+    } else {
         header.classList.remove('header-oculto');
     }
-    
     ultimoScrollY = window.scrollY;
 });
